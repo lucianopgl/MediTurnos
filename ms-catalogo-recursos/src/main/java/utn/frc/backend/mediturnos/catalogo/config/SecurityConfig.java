@@ -103,7 +103,6 @@ public class SecurityConfig {
         };
     }
 
-    @SuppressWarnings("unchecked")
     private Collection<GrantedAuthority> extractRealmRoles(Jwt jwt) {
         Set<GrantedAuthority> authorities = new HashSet<>();
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
