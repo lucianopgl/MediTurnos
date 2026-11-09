@@ -1,0 +1,23 @@
+# =============================================================================
+# MediTurnos API — Extensión para Entorno de Desarrollo (docker-compose.override.yml)
+# Cátedra Backend de Aplicaciones (UTN FRC - Apunte 22)
+#
+# Se aplica automáticamente al ejecutar `docker compose up` y publica los puertos
+# de los microservicios funcionales y de PostgreSQL para facilitar el debugging,
+# consultas SQL directas y acceso individual a Swagger UI en desarrollo.
+# Para levantar solo la Trusted Zone (producción), ejecutar:
+#   docker compose --file docker-compose.yml up --build -d
+# =============================================================================
+
+services:
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  ms-catalogo-recursos:
+    ports:
+      - "8081:8081"
+
+  ms-reservas:
+    ports:
+      - "8082:8082"

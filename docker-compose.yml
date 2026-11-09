@@ -1,0 +1,126 @@
+# =============================================================================
+# MediTurnos API — Configuración Base Docker Compose (Trusted Zone — Diagrama C2)
+# Cátedra Backend de Aplicaciones (UTN FRC - Apunte 22)
+#
+# En este archivo base (producción / evaluación de Trusted Zone) únicamente se
+# publican al host los puertos de `api-gateway` (8080) y `keycloak` (8083).
+# Los microservicios funcionales y PostgreSQL quedan aislados dentro de la red
+# interna `mediturnos-net` mediante `expose`.
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mediturnos-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mediturnos_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mediturnos_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-mediturnos_db}
+    expose:
+      - "5432"
+    volumes:
+      - mediturnos-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - mediturnos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mediturnos_user} -d ${POSTGRES_DB:-mediturnos_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: mediturnos-keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HTTP_PORT: 8080
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "${KEYCLOAK_PORT:-8083}:8080"
+    volumes:
+      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    networks:
+      - mediturnos-net
+    restart: unless-stopped
+
+  ms-catalogo-recursos:
+    build:
+      context: ./ms-catalogo-recursos
+      dockerfile: Dockerfile
+    container_name: ms-catalogo-recursos
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SERVER_PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-mediturnos_db}?currentSchema=schema_catalogo
+      DB_USERNAME: ${POSTGRES_USER:-mediturnos_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-mediturnos_pass}
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/MediTurnos
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/MediTurnos/protocol/openid-connect/certs
+    expose:
+      - "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mediturnos-net
+    restart: unless-stopped
+
+  ms-reservas:
+    build:
+      context: ./ms-reservas
+      dockerfile: Dockerfile
+    container_name: ms-reservas
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SERVER_PORT: 8082
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-mediturnos_db}?currentSchema=schema_reservas
+      DB_USERNAME: ${POSTGRES_USER:-mediturnos_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-mediturnos_pass}
+      CATALOGO_BASE_URL: http://ms-catalogo-recursos:8081/api/catalogo
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/MediTurnos
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/MediTurnos/protocol/openid-connect/certs
+      NOTIFICACIONES_API_URL: ${NOTIFICACIONES_API_URL:-https://api.telegram.org}
+      NOTIFICACIONES_BOT_TOKEN: ${NOTIFICACIONES_BOT_TOKEN:-dummy_token_desarrollo}
+    expose:
+      - "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ms-catalogo-recursos:
+        condition: service_started
+    networks:
+      - mediturnos-net
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SERVER_PORT: 8080
+      CATALOGO_SERVICE_URI: http://ms-catalogo-recursos:8081
+      RESERVAS_SERVICE_URI: http://ms-reservas:8082
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/MediTurnos
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/MediTurnos/protocol/openid-connect/certs
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    depends_on:
+      - keycloak
+      - ms-catalogo-recursos
+      - ms-reservas
+    networks:
+      - mediturnos-net
+    restart: unless-stopped
+
+networks:
+  mediturnos-net:
+    driver: bridge
+
+volumes:
+  mediturnos-postgres-data:

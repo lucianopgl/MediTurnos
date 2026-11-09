@@ -1,0 +1,15 @@
+.git
+.gitignore
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml
+src/
+*.md
+Dockerfile
+.dockerignore
+target/*
+!target/*.jar
+target/*-sources.jar
+target/*-javadoc.jar
+target/*.original

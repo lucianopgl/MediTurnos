@@ -1,0 +1,57 @@
+# =============================================================================
+# MediTurnos API — .gitignore (TPI Backend de Aplicaciones 2026 - UTN FRC)
+# =============================================================================
+
+# Maven / Java build artifacts
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+*.jar
+!**/src/test/**/*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# Variables de entorno reales y secretos (Se versiona únicamente .env.example)
+.env
+.env.*
+!.env.example
+
+# Datos locales de volúmenes bind-mount eventuales
+pgdata/
+postgres-data/
+
+# IDEs y Editores (IntelliJ IDEA, VS Code, Eclipse)
+/shelf/
+/.idea/workspace.xml
+/httpRequests/
+/queries/
+/dataSources/
+/dataSources.local.xml
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+Desktop.ini

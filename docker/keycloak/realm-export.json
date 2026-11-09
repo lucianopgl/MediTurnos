@@ -1,0 +1,171 @@
+{
+  "id": "mediturnos-realm-id",
+  "realm": "MediTurnos",
+  "displayName": "MediTurnos API — Gestión de Turnos y Recursos (UTN FRC)",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 3600,
+  "roles": {
+    "realm": [
+      {
+        "name": "ROL_ADMIN",
+        "description": "Administrador general del catálogo de sedes, consultorios, equipamientos y supervisión de reservas"
+      },
+      {
+        "name": "ROL_PROFESIONAL",
+        "description": "Profesional de la salud: parametrización de plantillas horarias, bloqueos de agenda y cierre de atención"
+      },
+      {
+        "name": "ROL_PACIENTE",
+        "description": "Paciente: autogestión de reservas, pagos, cancelaciones y reprogramación prioritaria"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "mediturnos-client",
+      "name": "MediTurnos REST Client (Gateway / Postman / Bruno)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "https://oauth.pstmn.io/v1/callback"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "sub-claim-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "username": "admin.mediturnos",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Luciano",
+      "lastName": "Administrador",
+      "email": "admin@mediturnos.com.ar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mediturnos2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROL_ADMIN"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "username": "dr.gonzalez",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Carlos",
+      "lastName": "González",
+      "email": "dr.gonzalez@mediturnos.com.ar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mediturnos2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROL_PROFESIONAL"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "username": "dra.martinez",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Laura",
+      "lastName": "Martínez",
+      "email": "dra.martinez@mediturnos.com.ar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mediturnos2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROL_PROFESIONAL"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "username": "paciente.perez",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Juan",
+      "lastName": "Pérez",
+      "email": "paciente.perez@mediturnos.com.ar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mediturnos2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROL_PACIENTE"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "username": "paciente.gomez",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "María",
+      "lastName": "Gómez",
+      "email": "paciente.gomez@mediturnos.com.ar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mediturnos2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROL_PACIENTE"
+      ]
+    }
+  ]
+}
