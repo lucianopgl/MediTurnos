@@ -123,7 +123,7 @@ stateDiagram-v2
 1. **Disparador:** Un paciente autenticado (`ROL_PACIENTE`, dado de alta mediante **FUNC-06**) solicita reservar un turno para un servicio médico (ej. *Ecocardiograma Doppler*) con un profesional en una fecha y hora determinadas (`POST /api/reservas/turnos` — **FUNC-07**).
 2. **Autenticación y Enrutamiento:** El **API Gateway** valida el token JWT emitido por **Keycloak**, verifica el rol `ROL_PACIENTE`, inyecta el header `X-Correlation-Id` y enruta la petición a `ms-reservas`.
 3. **Validación Estática y Parametrizada en Catálogo (`ms-reservas` $\rightarrow$ `ms-catalogo-recursos`):**
-   - `ms-reservas` invoca síncronamente vía `RestClient` a `ms-catalogo-recursos` (`GET /api/catalogo/compatibilidad/validar` — **FUNC-05**) enviando `(profesionalId, servicioId, fecha, horaInicio)`.
+   - `ms-reservas` invoca síncronamente vía `RestClient` a `ms-catalogo-recursos` (`GET /api/catalogo/compatibilidad` — **FUNC-05**) enviando `(profesionalId, servicioId, fecha, horaInicio)`.
    - `ms-catalogo-recursos` verifica **RN-01** (profesional activo, servicio habilitado, horario dentro de `HORARIOS_PROFESIONAL` y sin bloqueo en `BLOQUEOS_PROFESIONAL` para esa fecha) y **RN-02** (consultorio fijo `N:1` y equipamientos `N:N` en estado `OPERATIVO` y en la misma `Sede`).
    - Si todo es válido, retorna `200 OK` con `CompatibilidadRecursoDTO` (`duracionMinutos`, `costo`, `sedeId`, `consultorioFijoId`, `List<equipamientoId>`).
 4. **Validación Transaccional de No Colisión Horaria (`ms-reservas`):**
@@ -155,7 +155,7 @@ sequenceDiagram
     RES->>DB_R: Busca Paciente activo por keycloak_sub
     DB_R-->>RES: Paciente encontrado
 
-    RES->>CAT: GET /api/catalogo/compatibilidad/validar (profesionalId, servicioId, fecha, horaInicio) [FUNC-05]
+    RES->>CAT: GET /api/catalogo/compatibilidad (profesionalId, servicioId, fecha, horaInicio) [FUNC-05]
     CAT->>DB_C: Verifica RN-01 (Médico activo, Servicio habilitado, Plantilla semanal y Sin Bloqueos en fecha)
     CAT->>DB_C: Verifica RN-02 (Consultorio Fijo N:1 y Equipos N:N OPERATIVOS en la misma Sede)
     alt Regla de catálogo incumplida (RN-01 / RN-02)
@@ -320,7 +320,7 @@ flowchart TB
 | `ms-catalogo-recursos` | Horarios | `POST` | `/profesionales/{id}/horarios` | Configurar un bloque en la plantilla horaria semanal de atención del profesional | `ROL_PROFESIONAL`, `ROL_ADMIN` |
 | `ms-catalogo-recursos` | Horarios | `GET` | `/profesionales/{id}/horarios` | Consultar la plantilla horaria semanal y bloqueos vigentes de un profesional | Usuario autenticado |
 | `ms-catalogo-recursos` | Bloqueos | `POST` | `/profesionales/{id}/bloqueos` | Registrar un bloqueo o excepción puntual de agenda para una fecha y rango horario | `ROL_PROFESIONAL`, `ROL_ADMIN` (e invocación desde `ms-reservas`) |
-| `ms-catalogo-recursos` | Compatibilidad | `GET` | `/compatibilidad/validar` | Validar reglas estáticas y parametrizadas (RN-01 y RN-02) para `(profesionalId, servicioId, fecha, horaInicio)` y devolver IDs de recursos, duración y costo | Comunicación interna (`ms-reservas`) / Usuario autenticado |
+| `ms-catalogo-recursos` | Compatibilidad | `GET` | `/compatibilidad` | Validar reglas estáticas y parametrizadas (RN-01 y RN-02) para `(profesionalId, servicioId, fecha, horaInicio)` y devolver IDs de recursos, duración y costo | Comunicación interna (`ms-reservas`) / Usuario autenticado |
 
 ### 6.2. Microservicio 2: `ms-reservas` (Prefijo en Gateway: `/api/reservas`)
 
