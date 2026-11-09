@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/mediturnos_db?currentSchema=schema_catalogo}
+    username: ${DB_USERNAME:mediturnos_user}
+    password: ${DB_PASSWORD:mediturnos_pass}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://keycloak:8080/realms/MediTurnos/protocol/openid-connect/certs}
