@@ -1,0 +1,52 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: ms-reservas
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mediturnos_db?currentSchema=schema_reservas}
+    username: ${DB_USERNAME:mediturnos_user}
+    password: ${DB_PASSWORD:mediturnos_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: schema_reservas
+        format_sql: false
+    show-sql: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8083/realms/MediTurnos/protocol/openid-connect/certs}
+
+catalogo:
+  base-url: ${CATALOGO_BASE_URL:http://localhost:8081/api/catalogo}
+
+notificaciones:
+  api:
+    url: ${NOTIFICACIONES_API_URL:https://api.telegram.org}
+    bot-token: ${NOTIFICACIONES_BOT_TOKEN:dummy_token_desarrollo}
+    connect-timeout-ms: 3000
+    read-timeout-ms: 4000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
