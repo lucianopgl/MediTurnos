@@ -573,4 +573,39 @@ MediTurnos/
 - [x] Definición de dominio, alcance del MVP, reglas de negocio, procesos y ADRs.
 - [x] Elaboración de **Diagramas Modelo C4 (C1 y C2)**, **Diagrama de Estados**, **Diagrama de Secuencia** y **DER (`schema_catalogo` y `schema_reservas`)**.
 - [x] Definición de contratos de APIs REST y criterios de verificación observables.
-- [ ] Implementación de `mediturnos-common-lib`, `ms-catalogo-recursos`, `ms-reservas`, `api-gateway` y configuración de `docker-compose.yml`.
+- [x] Implementación y empaquetado del componente común reutilizable `mediturnos-common-lib` (`.jar` no ejecutable instalado en `.m2`).
+- [x] Implementación del microservicio `ms-catalogo-recursos` (puerto `8081`, `schema_catalogo`, reglas `RN-01` y `RN-02`).
+- [x] Implementación del microservicio `ms-reservas` (puerto `8082`, `schema_reservas`, reglas `RN-03` a `RN-08`, cliente síncrono `RestClient` y notificaciones resilientes).
+- [x] Implementación del perímetro reactivo `api-gateway` (puerto `8080`, Netty/WebFlux, autenticación OAuth2 JWT Keycloak, mapeo RBAC y trazabilidad `X-Correlation-Id`).
+- [x] Orquestación contenerizada reproducible con Docker y Docker Compose (`mediturnos-net`, volúmenes nombrados, `init-db.sql` y `realm-export.json`).
+- [x] Suite de Pruebas Automatizadas E2E (`scripts/test-system-e2e.ps1` con 20/20 casos aprobados) y Colección completa de Postman/Newman (`docs/postman/`).
+
+---
+
+### 🚀 Guía Rápida de Despliegue y Ejecución de Pruebas
+
+#### 1. Despliegue del Sistema con Docker Compose
+Desde el directorio raíz `MediTurnos/`:
+```bash
+# Iniciar todos los contenedores (PostgreSQL, Keycloak, Catálogo, Reservas y Gateway)
+docker compose up -d --build
+```
+> Los servicios quedarán operativos en la red `mediturnos-net`. Los puertos públicos expuestos en el host son:
+> - **API Gateway:** `http://localhost:8080` (punto único de entrada a la Trusted Zone)
+> - **Keycloak:** `http://localhost:8083` (autenticación OIDC y tokens JWT)
+
+#### 2. Ejecución de la Suite de Pruebas E2E Automatizada (PowerShell)
+Ejecuta la suite integral que valida de extremo a extremo las 5 fases y los casos `CV-01` a `CV-08`:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/test-system-e2e.ps1
+```
+
+#### 3. Ejecución de Pruebas con Newman / Postman (CLI)
+Para correr la suite de pruebas reproducible con aserciones automáticas mediante Newman:
+```bash
+npx newman run docs/postman/MediTurnos_API.postman_collection.json \
+    -e docs/postman/MediTurnos_Local_Docker.postman_environment.json \
+    --color on
+```
+> O importa los archivos de `docs/postman/` en la aplicación de escritorio de **Postman**, selecciona el entorno **MediTurnos — Local Docker Environment** y ejecuta el *Collection Runner*.
+
