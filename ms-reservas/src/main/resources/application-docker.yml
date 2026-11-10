@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/mediturnos_db?currentSchema=schema_reservas}
+    username: ${DB_USERNAME:mediturnos_user}
+    password: ${DB_PASSWORD:mediturnos_pass}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://keycloak:8080/realms/MediTurnos/protocol/openid-connect/certs}
+
+catalogo:
+  base-url: ${CATALOGO_BASE_URL:http://ms-catalogo-recursos:8081/api/catalogo}
+
+notificaciones:
+  api:
+    url: ${NOTIFICACIONES_API_URL:https://api.telegram.org}
+    bot-token: ${NOTIFICACIONES_BOT_TOKEN:dummy_token_desarrollo}
