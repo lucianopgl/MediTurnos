@@ -1,0 +1,19 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://keycloak:8080/realms/MediTurnos/protocol/openid-connect/certs}
+
+  cloud:
+    gateway:
+      routes:
+        - id: ms-catalogo-recursos
+          uri: ${CATALOGO_SERVICE_URI:http://ms-catalogo-recursos:8081}
+          predicates:
+            - Path=/api/catalogo/**
+
+        - id: ms-reservas
+          uri: ${RESERVAS_SERVICE_URI:http://ms-reservas:8082}
+          predicates:
+            - Path=/api/reservas/**

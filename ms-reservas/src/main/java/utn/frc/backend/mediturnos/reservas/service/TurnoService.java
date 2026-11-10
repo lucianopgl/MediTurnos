@@ -301,12 +301,17 @@ public class TurnoService {
         turno.setConsultorioId(compatibilidad.getConsultorioFijoId());
         turno.setSedeId(compatibilidad.getSedeId());
 
-        // Actualizar colección de equipamientos
-        turno.getEquipamientos().clear();
+        // Actualizar colección de equipamientos de forma segura sin colisión de UK
         if (compatibilidad.getEquipamientosIds() != null) {
+            turno.getEquipamientos().removeIf(eq -> !compatibilidad.getEquipamientosIds().contains(eq.getEquipamientoId()));
             for (Long eqId : compatibilidad.getEquipamientosIds()) {
-                turno.agregarEquipamiento(eqId);
+                boolean yaExiste = turno.getEquipamientos().stream().anyMatch(eq -> eq.getEquipamientoId().equals(eqId));
+                if (!yaExiste) {
+                    turno.agregarEquipamiento(eqId);
+                }
             }
+        } else {
+            turno.getEquipamientos().clear();
         }
 
         // RN-07: Si ya estaba pagado pasa directamente a CONFIRMADO sin requerir nuevo pago
