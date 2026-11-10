@@ -55,3 +55,9 @@ postgres-data/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Privacidad de Agentes y Customizaciones Locales (Regla de Cátedra)
+.agents/
+AGENTS.md
+GEMINI.md
+

@@ -38,7 +38,7 @@ public class NotificacionService {
     @Value("${notificaciones.api.bot-token:dummy_token_desarrollo}")
     private String botToken;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void enviarNotificacionResiliente(Turno turno, Paciente paciente, TipoAlertaNotificacion tipoAlerta, String mensaje) {
         EstadoEnvioNotificacion estadoEnvio;
         String detalleFinal = mensaje;
