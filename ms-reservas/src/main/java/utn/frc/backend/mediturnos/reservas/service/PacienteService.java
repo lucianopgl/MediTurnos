@@ -21,29 +21,33 @@ public class PacienteService {
 
     @Transactional
     public PacienteResponseDTO registrarPaciente(PacienteRequestDTO request) {
-        String keycloakSub = request.getKeycloakSub();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean esAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROL_ADMIN"));
 
-        // Si no viene explícito (ej. petición de ROL_PACIENTE), se extrae del token JWT
-        if (keycloakSub == null || keycloakSub.isBlank()) {
-            keycloakSub = obtenerSubjectAutenticado();
-        }
+        String keycloakSub = (esAdmin && request.getKeycloakSub() != null && !request.getKeycloakSub().isBlank())
+                ? request.getKeycloakSub().trim()
+                : obtenerSubjectAutenticado();
+
+        String dniNorm = request.getDni().trim();
+        String emailNorm = request.getEmail().trim().toLowerCase();
 
         if (pacienteRepository.existsByKeycloakSub(keycloakSub)) {
             throw new RecursoNoDisponibleException("Ya existe un perfil de paciente registrado para este usuario de Keycloak");
         }
-        if (pacienteRepository.existsByDni(request.getDni())) {
+        if (pacienteRepository.existsByDni(dniNorm)) {
             throw new RecursoNoDisponibleException("El DNI ingresado ya se encuentra registrado en el sistema");
         }
-        if (pacienteRepository.existsByEmail(request.getEmail())) {
+        if (pacienteRepository.existsByEmail(emailNorm)) {
             throw new RecursoNoDisponibleException("El email ingresado ya se encuentra registrado en el sistema");
         }
 
         Paciente paciente = Paciente.builder()
                 .keycloakSub(keycloakSub)
-                .dni(request.getDni().trim())
+                .dni(dniNorm)
                 .nombre(request.getNombre().trim())
                 .apellido(request.getApellido().trim())
-                .email(request.getEmail().trim().toLowerCase())
+                .email(emailNorm)
                 .telefonoWhatsapp(request.getTelefonoWhatsapp().trim())
                 .cantidadPenalizaciones(0)
                 .activo(true)
@@ -70,15 +74,23 @@ public class PacienteService {
 
     @Transactional(readOnly = true)
     public Paciente obtenerEntidadPorId(Long id) {
-        return pacienteRepository.findById(id)
+        Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Paciente no encontrado con id: " + id));
+        if (Boolean.FALSE.equals(paciente.getActivo())) {
+            throw new RecursoNoDisponibleException("El perfil del paciente con id " + id + " se encuentra inactivo");
+        }
+        return paciente;
     }
 
     @Transactional(readOnly = true)
     public Paciente obtenerEntidadAutenticada() {
         String keycloakSub = obtenerSubjectAutenticado();
-        return pacienteRepository.findByKeycloakSub(keycloakSub)
+        Paciente paciente = pacienteRepository.findByKeycloakSub(keycloakSub)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el perfil del paciente autenticado con sub: " + keycloakSub));
+        if (Boolean.FALSE.equals(paciente.getActivo())) {
+            throw new RecursoNoDisponibleException("El perfil del paciente autenticado se encuentra inactivo");
+        }
+        return paciente;
     }
 
     private String obtenerSubjectAutenticado() {

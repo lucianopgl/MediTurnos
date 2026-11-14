@@ -124,6 +124,20 @@ class CommonLibContractsAndExceptionsTest {
         ResponseEntity<ErrorResponseDTO> notFound = exceptionHandler.handleMediTurnosException(
                 new RecursoNoEncontradoException("Profesional no encontrado"), request);
         assertEquals(HttpStatus.NOT_FOUND, notFound.getStatusCode());
+
+        // 403 Forbidden (AccessDeniedException desde capa de servicio)
+        Exception simulatedAccessDenied = new CustomAccessDeniedException("No tiene permisos sobre este recurso");
+        ResponseEntity<ErrorResponseDTO> forbidden = exceptionHandler.handleUnexpectedException(
+                simulatedAccessDenied, request);
+        assertEquals(HttpStatus.FORBIDDEN, forbidden.getStatusCode());
+        assertNotNull(forbidden.getBody());
+        assertEquals("FORBIDDEN", forbidden.getBody().getRuleCode());
+    }
+
+    private static class CustomAccessDeniedException extends RuntimeException {
+        CustomAccessDeniedException(String message) {
+            super(message);
+        }
     }
 
     @Test

@@ -10,6 +10,7 @@ import utn.frc.backend.mediturnos.catalogo.entity.Equipamiento;
 import utn.frc.backend.mediturnos.catalogo.entity.Especialidad;
 import utn.frc.backend.mediturnos.catalogo.entity.Servicio;
 import utn.frc.backend.mediturnos.catalogo.repository.ServicioRepository;
+import utn.frc.backend.mediturnos.common.exception.CoherenciaSedeException;
 import utn.frc.backend.mediturnos.common.exception.RecursoNoDisponibleException;
 import utn.frc.backend.mediturnos.common.exception.RecursoNoEncontradoException;
 
@@ -37,6 +38,14 @@ public class ServicioService {
         Set<Equipamiento> equipamientos = new HashSet<>();
         if (request.getEquipamientosIds() != null && !request.getEquipamientosIds().isEmpty()) {
             equipamientos.addAll(equipamientoService.buscarEntidadesPorIds(request.getEquipamientosIds()));
+            if (equipamientos.size() > 1) {
+                Long primeraSedeId = equipamientos.iterator().next().getSede().getId();
+                boolean mismaSede = equipamientos.stream()
+                        .allMatch(eq -> primeraSedeId.equals(eq.getSede().getId()));
+                if (!mismaSede) {
+                    throw new CoherenciaSedeException("Incoherencia física de sede: todos los equipamientos requeridos por un mismo servicio deben pertenecer a la misma sede");
+                }
+            }
         }
 
         Servicio servicio = Servicio.builder()

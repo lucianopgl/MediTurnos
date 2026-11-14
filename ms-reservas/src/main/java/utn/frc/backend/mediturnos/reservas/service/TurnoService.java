@@ -3,6 +3,7 @@ package utn.frc.backend.mediturnos.reservas.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -129,13 +130,14 @@ public class TurnoService {
             );
         }
 
-        if (pagoRepository.existsByComprobanteReferencia(request.getComprobanteReferencia())) {
+        String comprobanteNorm = request.getComprobanteReferencia().trim();
+        if (pagoRepository.existsByComprobanteReferencia(comprobanteNorm)) {
             throw new EstadoTurnoInvalidoException("El comprobante de referencia ya fue registrado previamente", "RN-04");
         }
 
         Pago pago = Pago.builder()
                 .turno(turno)
-                .comprobanteReferencia(request.getComprobanteReferencia().trim())
+                .comprobanteReferencia(comprobanteNorm)
                 .medioPago(request.getMedioPago().trim())
                 .monto(request.getMonto())
                 .estadoPago(EstadoPago.APROBADO)
@@ -214,7 +216,7 @@ public class TurnoService {
     @Transactional
     public CancelacionBloqueProfesionalResponseDTO cancelarBloqueProfesional(CancelacionBloqueProfesionalRequestDTO request) {
         if (!request.getHoraFin().isAfter(request.getHoraInicio())) {
-            throw new EstadoTurnoInvalidoException("La hora de fin debe ser posterior a la hora de inicio", "RN-06");
+            throw new EstadoTurnoInvalidoException("La hora de fin debe ser posterior a la hora de inicio", HttpStatus.BAD_REQUEST, "RN-06");
         }
 
         // 1. Registra el bloqueo puntual en catálogo vía RestClient

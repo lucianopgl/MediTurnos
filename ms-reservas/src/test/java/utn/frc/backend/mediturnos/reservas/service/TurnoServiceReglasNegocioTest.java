@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -18,6 +19,9 @@ import utn.frc.backend.mediturnos.common.enums.TipoAlertaNotificacion;
 import utn.frc.backend.mediturnos.common.exception.ColisionHorariaException;
 import utn.frc.backend.mediturnos.common.exception.EstadoTurnoInvalidoException;
 import utn.frc.backend.mediturnos.reservas.client.CatalogoClient;
+import utn.frc.backend.mediturnos.reservas.dto.CancelacionBloqueProfesionalRequestDTO;
+import utn.frc.backend.mediturnos.reservas.dto.CancelacionBloqueProfesionalResponseDTO;
+import utn.frc.backend.mediturnos.reservas.dto.CierreAtencionRequestDTO;
 import utn.frc.backend.mediturnos.reservas.dto.PagoRequestDTO;
 import utn.frc.backend.mediturnos.reservas.dto.PagoResponseDTO;
 import utn.frc.backend.mediturnos.reservas.dto.ReprogramacionTurnoRequestDTO;
@@ -353,5 +357,85 @@ class TurnoServiceReglasNegocioTest {
         assertEquals(nuevaFecha, response.getFecha());
         assertEquals(nuevaHora, response.getHoraInicio());
         verify(notificacionService).enviarNotificacionResiliente(eq(turno), eq(pacienteTest), eq(TipoAlertaNotificacion.REPROGRAMACION), anyString());
+    }
+
+    @Test
+    @DisplayName("CV-06 / RN-06: Bloqueo de agenda médica pasa turnos afectados a PENDIENTE_REPROGRAMACION y envía alerta")
+    void testCancelarBloqueProfesionalExitoso() {
+        mockSecurityContext("prof-sub-001", "ROL_PROFESIONAL");
+
+        Turno turnoAfectado = Turno.builder()
+                .id(2L)
+                .paciente(pacienteTest)
+                .profesionalId(1L)
+                .fecha(LocalDate.of(2026, 11, 17))
+                .horaInicio(LocalTime.of(10, 0))
+                .horaFin(LocalTime.of(10, 45))
+                .estado(EstadoTurno.CONFIRMADO)
+                .pagado(true)
+                .build();
+
+        doNothing().when(catalogoClient).registrarBloqueoAgenda(eq(1L), any());
+        when(turnoRepository.buscarTurnosAfectadosPorBloqueo(
+                eq(1L), eq(LocalDate.of(2026, 11, 17)), eq(LocalTime.of(8, 0)), eq(LocalTime.of(12, 0))
+        )).thenReturn(List.of(turnoAfectado));
+        when(turnoRepository.save(any(Turno.class))).thenAnswer(i -> i.getArgument(0));
+
+        CancelacionBloqueProfesionalRequestDTO request = CancelacionBloqueProfesionalRequestDTO.builder()
+                .profesionalId(1L)
+                .fecha(LocalDate.of(2026, 11, 17))
+                .horaInicio(LocalTime.of(8, 0))
+                .horaFin(LocalTime.of(12, 0))
+                .motivo("Congreso de Cardiología")
+                .build();
+
+        CancelacionBloqueProfesionalResponseDTO response = turnoService.cancelarBloqueProfesional(request);
+
+        assertEquals(1, response.getCantidadTurnosAfectados());
+        assertEquals(List.of(2L), response.getTurnosAfectadosIds());
+        assertEquals(EstadoTurno.PENDIENTE_REPROGRAMACION, turnoAfectado.getEstado());
+        verify(notificacionService).enviarNotificacionResiliente(eq(turnoAfectado), eq(pacienteTest), eq(TipoAlertaNotificacion.REPROGRAMACION), anyString());
+    }
+
+    @Test
+    @DisplayName("FUNC-12: Cierre de atención médica actualiza turno CONFIRMADO a ATENDIDO")
+    void testCerrarAtencionExitoso() {
+        mockSecurityContext("prof-sub-001", "ROL_PROFESIONAL");
+
+        Turno turno = Turno.builder()
+                .id(2L)
+                .paciente(pacienteTest)
+                .profesionalId(1L)
+                .estado(EstadoTurno.CONFIRMADO)
+                .pagado(true)
+                .build();
+
+        when(turnoRepository.findById(2L)).thenReturn(Optional.of(turno));
+        when(turnoRepository.save(any(Turno.class))).thenAnswer(i -> i.getArgument(0));
+
+        CierreAtencionRequestDTO request = CierreAtencionRequestDTO.builder()
+                .resultado(EstadoTurno.ATENDIDO)
+                .build();
+
+        TurnoResponseDTO response = turnoService.cerrarAtencion(2L, request);
+
+        assertEquals(EstadoTurno.ATENDIDO, response.getEstado());
+    }
+
+    @Test
+    @DisplayName("SEG-01: Paciente no puede cancelar ni consultar el turno de otro paciente (AccessDeniedException -> 403)")
+    void testAccesoDenegadoEntrePacientes() {
+        mockSecurityContext("otro-paciente-sub-999", "ROL_PACIENTE");
+
+        Turno turnoDeJuan = Turno.builder()
+                .id(1L)
+                .paciente(pacienteTest) // keycloakSub = "user-sub-001"
+                .estado(EstadoTurno.RESERVADO)
+                .build();
+
+        when(turnoRepository.findById(1L)).thenReturn(Optional.of(turnoDeJuan));
+
+        assertThrows(AccessDeniedException.class, () -> turnoService.obtenerPorId(1L));
+        assertThrows(AccessDeniedException.class, () -> turnoService.cancelarTurnoPaciente(1L));
     }
 }

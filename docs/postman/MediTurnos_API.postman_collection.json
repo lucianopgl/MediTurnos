@@ -402,7 +402,7 @@
                   "});",
                   "pm.test(\"Formato unificado ErrorResponseDTO y Header X-Correlation-Id presente\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.codigo).to.eql(\"ACCESO_NO_AUTORIZADO\");",
+                  "    pm.expect(jsonData.ruleCode).to.eql(\"UNAUTHORIZED\");",
                   "    pm.expect(jsonData.status).to.eql(401);",
                   "    pm.expect(jsonData.timestamp).to.be.a(\"string\");",
                   "    pm.expect(jsonData.path).to.be.a(\"string\");",
@@ -441,7 +441,7 @@
                   "});",
                   "pm.test(\"ErrorResponseDTO deniega acceso a ROL_PACIENTE\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.codigo).to.eql(\"ACCESO_DENEGADO\");",
+                  "    pm.expect(jsonData.ruleCode).to.eql(\"FORBIDDEN\");",
                   "    pm.expect(jsonData.status).to.eql(403);",
                   "    pm.expect(pm.response.headers.has(\"X-Correlation-Id\")).to.be.true;",
                   "});"
@@ -491,7 +491,7 @@
                   "});",
                   "pm.test(\"ErrorResponseDTO deniega ruta exclusiva ROL_ADMIN\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.codigo).to.eql(\"ACCESO_DENEGADO\");",
+                  "    pm.expect(jsonData.ruleCode).to.eql(\"FORBIDDEN\");",
                   "    pm.expect(jsonData.status).to.eql(403);",
                   "});"
                 ],
@@ -581,7 +581,7 @@
                   "pm.test(\"Consultorios pertenecen a la Sede Central (sedeId=1)\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.be.an('array');",
-                  "    var box101 = jsonData.find(c => c.numeroBox === 'Box 101');",
+                  "    var box101 = jsonData.find(c => c.codigoNombre && c.codigoNombre.includes('Box 101'));",
                   "    pm.expect(box101).to.not.be.undefined;",
                   "    pm.expect(box101.operativo).to.be.true;",
                   "});"
@@ -595,26 +595,30 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{paciente_perez_token}}"
+                "value": "Bearer {{profesional_token}}"
               }
             ],
             "url": {
-              "raw": "{{gateway_url}}/api/catalogo/sedes/1/consultorios",
+              "raw": "{{gateway_url}}/api/catalogo/consultorios?sedeId=1",
               "host": [
                 "{{gateway_url}}"
               ],
               "path": [
                 "api",
                 "catalogo",
-                "sedes",
-                "1",
                 "consultorios"
+              ],
+              "query": [
+                {
+                  "key": "sedeId",
+                  "value": "1"
+                }
               ]
             }
           }
         },
         {
-          "name": "03. Listar Equipamientos Operativos de Sede (FUNC-03)",
+          "name": "03. Listar Equipamientos de Sede (FUNC-03)",
           "event": [
             {
               "listen": "test",
@@ -623,10 +627,10 @@
                   "pm.test(\"Status code es 200 OK\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test(\"Retorna equipamientos con estado operativo\", function () {",
+                  "pm.test(\"Retorna equipamientos incluyendo Holter (#3) en mantenimiento\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.be.an('array');",
-                  "    var holter = jsonData.find(e => e.id === 2);",
+                  "    var holter = jsonData.find(e => e.id === 3);",
                   "    pm.expect(holter).to.not.be.undefined;",
                   "    pm.expect(holter.operativo).to.be.false;",
                   "});"
@@ -640,7 +644,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{paciente_perez_token}}"
+                "value": "Bearer {{profesional_token}}"
               }
             ],
             "url": {
@@ -719,7 +723,8 @@
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.be.an('array');",
                   "    var dr = jsonData.find(p => p.id === 1);",
-                  "    pm.expect(dr.nombre).to.include(\"Carlos González\");",
+                  "    pm.expect(dr.nombre).to.eql(\"Carlos\");",
+                  "    pm.expect(dr.apellido).to.eql(\"González\");",
                   "    pm.expect(dr.activo).to.be.true;",
                   "});"
                 ],
@@ -777,10 +782,10 @@
                   "});",
                   "pm.test(\"Compatibilidad confirmada para Dr. González y Box 101\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.compatible).to.be.true;",
-                  "    pm.expect(jsonData.consultorioId).to.eql(1);",
+                  "    pm.expect(jsonData.sedeId).to.eql(1);",
+                  "    pm.expect(jsonData.consultorioFijoId).to.eql(1);",
                   "    pm.expect(jsonData.costo).to.eql(15000.0);",
-                  "    pm.expect(jsonData.equipamientoIds).to.include(1);",
+                  "    pm.expect(jsonData.equipamientosIds).to.include(2);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -796,7 +801,7 @@
               }
             ],
             "url": {
-              "raw": "{{gateway_url}}/api/catalogo/compatibilidad?profesionalId=1&servicioId=1&fecha={{fecha_compatibilidad}}&horaInicio=09:00:00&horaFin=09:30:00",
+              "raw": "{{gateway_url}}/api/catalogo/compatibilidad?profesionalId=1&servicioId=1&fecha={{fecha_compatibilidad}}&horaInicio=09:00:00",
               "host": [
                 "{{gateway_url}}"
               ],
@@ -821,10 +826,6 @@
                 {
                   "key": "horaInicio",
                   "value": "09:00:00"
-                },
-                {
-                  "key": "horaFin",
-                  "value": "09:30:00"
                 }
               ]
             }
@@ -834,7 +835,7 @@
     },
     {
       "name": "03. Ciclo Transaccional de Turnos (ms-reservas - 8082)",
-      "description": "Casos de verificación nucleares de la cátedra: reserva tripartita exitosa (CV-01), detección de colisión de consultorio compartido (CV-02), bloqueo por recurso no disponible (CV-03), confirmación por pago (CV-04), bloqueo de agenda médica (CV-06), reprogramación prioritaria sin doble cobro (CV-07), cancelación con liberación inmediata (CV-05) y cierre clínico (FUNC-11).",
+      "description": "Casos de verificación nucleares de la cátedra: reserva tripartita exitosa (CV-01), detección de colisión de consultorio compartido (CV-02), bloqueo por recurso no disponible (CV-03), confirmación por pago (CV-04), bloqueo de agenda médica (CV-06), reprogramación prioritaria sin doble cobro (CV-07), cancelación con liberación inmediata (CV-05) y cierre clínico (FUNC-12).",
       "item": [
         {
           "name": "01. CV-01: Reserva Exitosa Tripartita (RN-01, RN-02, RN-03, RN-08)",
@@ -845,15 +846,14 @@
                 "exec": [
                   "// Generar fecha y horario unico para la prueba",
                   "var d = new Date();",
-                  "d.setDate(d.getDate() + 3);",
+                  "d.setDate(d.getDate() + 14);",
                   "if (d.getDay() === 0) d.setDate(d.getDate() + 1);",
                   "if (d.getDay() === 6) d.setDate(d.getDate() + 2);",
                   "var yyyy = d.getFullYear();",
                   "var mm = String(d.getMonth() + 1).padStart(2, '0');",
                   "var dd = String(d.getDate()).padStart(2, '0');",
                   "pm.environment.set(\"fecha_cv01\", yyyy + '-' + mm + '-' + dd);",
-                  "pm.environment.set(\"hora_cv01\", \"09:00:00\");",
-                  "pm.environment.set(\"hora_fin_cv01\", \"09:30:00\");"
+                  "pm.environment.set(\"hora_cv01\", \"09:00:00\");"
                 ],
                 "type": "text/javascript"
               }
@@ -892,7 +892,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"pacienteId\": 1,\n    \"profesionalId\": 1,\n    \"servicioId\": 1,\n    \"fecha\": \"{{fecha_cv01}}\",\n    \"horaInicio\": \"{{hora_cv01}}\",\n    \"motivoConsulta\": \"Chequeo Preventivo Postman Suite\"\n}"
+              "raw": "{\n    \"profesionalId\": 1,\n    \"servicioId\": 1,\n    \"fecha\": \"{{fecha_cv01}}\",\n    \"horaInicio\": \"{{hora_cv01}}\"\n}"
             },
             "url": {
               "raw": "{{gateway_url}}/api/reservas/turnos",
@@ -919,8 +919,8 @@
                   "});",
                   "pm.test(\"Detecta colision de consultorio compartido entre Dra. Martinez y Dr. Gonzalez\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.codigo).to.eql(\"COLISION_HORARIA\");",
-                  "    pm.expect(jsonData.mensaje).to.include(\"consultorio\");",
+                  "    pm.expect(jsonData.ruleCode).to.eql(\"RN-03\");",
+                  "    pm.expect(jsonData.message.toLowerCase()).to.include(\"consultorio\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -941,7 +941,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"pacienteId\": 2,\n    \"profesionalId\": 2,\n    \"servicioId\": 1,\n    \"fecha\": \"{{fecha_cv01}}\",\n    \"horaInicio\": \"{{hora_cv01}}\",\n    \"motivoConsulta\": \"Intento de reserva colisionante\"\n}"
+              "raw": "{\n    \"profesionalId\": 2,\n    \"servicioId\": 1,\n    \"fecha\": \"{{fecha_cv01}}\",\n    \"horaInicio\": \"{{hora_cv01}}\"\n}"
             },
             "url": {
               "raw": "{{gateway_url}}/api/reservas/turnos",
@@ -968,8 +968,8 @@
                   "});",
                   "pm.test(\"Rechaza por Holter 24hs no operativo\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.codigo).to.eql(\"RECURSO_NO_DISPONIBLE\");",
-                  "    pm.expect(jsonData.mensaje).to.include(\"Holter\");",
+                  "    pm.expect(jsonData.ruleCode).to.eql(\"RN-02\");",
+                  "    pm.expect(jsonData.message).to.include(\"Holter\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -990,7 +990,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"pacienteId\": 1,\n    \"profesionalId\": 1,\n    \"servicioId\": 2,\n    \"fecha\": \"{{fecha_cv01}}\",\n    \"horaInicio\": \"10:00:00\",\n    \"motivoConsulta\": \"Estudio Holter\"\n}"
+              "raw": "{\n    \"profesionalId\": 1,\n    \"servicioId\": 3,\n    \"fecha\": \"{{fecha_cv01}}\",\n    \"horaInicio\": \"10:00:00\"\n}"
             },
             "url": {
               "raw": "{{gateway_url}}/api/reservas/turnos",
@@ -1024,11 +1024,11 @@
                   "pm.test(\"Status code es 200 OK\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test(\"Turno pasa a CONFIRMADO con pagado=true\", function () {",
+                  "pm.test(\"Turno pasa a CONFIRMADO con estadoPago=APROBADO\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.id).to.eql(pm.environment.get(\"turno_cv01_id\"));",
-                  "    pm.expect(jsonData.estado).to.eql(\"CONFIRMADO\");",
-                  "    pm.expect(jsonData.pagado).to.be.true;",
+                  "    pm.expect(jsonData.turnoId).to.eql(pm.environment.get(\"turno_cv01_id\"));",
+                  "    pm.expect(jsonData.estadoPago).to.eql(\"APROBADO\");",
+                  "    pm.expect(jsonData.estadoTurnoActual).to.eql(\"CONFIRMADO\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1049,7 +1049,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"monto\": 15000.00,\n    \"metodoPago\": \"TARJETA_DEBITO\",\n    \"comprobanteReferencia\": \"{{ref_pago}}\"\n}"
+              "raw": "{\n    \"monto\": 15000.00,\n    \"medioPago\": \"TARJETA_DEBITO\",\n    \"comprobanteReferencia\": \"{{ref_pago}}\"\n}"
             },
             "url": {
               "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_cv01_id}}/pagos",
@@ -1073,13 +1073,13 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code es 201 Created\", function () {",
-                  "    pm.response.to.have.status(201);",
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test(\"Bloqueo registrado correctamente\", function () {",
+                  "pm.test(\"Bloqueo registrado y turnos afectados pasados a PENDIENTE_REPROGRAMACION\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.id).to.be.a('number');",
                   "    pm.expect(jsonData.profesionalId).to.eql(1);",
+                  "    pm.expect(jsonData.cantidadTurnosAfectados).to.be.a('number');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1100,17 +1100,18 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"profesionalId\": 1,\n    \"fecha\": \"2026-11-20\",\n    \"horaInicio\": \"08:00:00\",\n    \"horaFin\": \"12:00:00\",\n    \"motivo\": \"Congreso de Cardiologia Postman\"\n}"
+              "raw": "{\n    \"profesionalId\": 1,\n    \"fecha\": \"2026-11-17\",\n    \"horaInicio\": \"08:00:00\",\n    \"horaFin\": \"12:00:00\",\n    \"motivo\": \"Congreso de Cardiologia Postman\"\n}"
             },
             "url": {
-              "raw": "{{gateway_url}}/api/catalogo/bloqueos",
+              "raw": "{{gateway_url}}/api/reservas/turnos/cancelacion-bloque-profesional",
               "host": [
                 "{{gateway_url}}"
               ],
               "path": [
                 "api",
-                "catalogo",
-                "bloqueos"
+                "reservas",
+                "turnos",
+                "cancelacion-bloque-profesional"
               ]
             }
           }
@@ -1130,7 +1131,7 @@
                   "    pm.expect(jsonData.id).to.eql(2);",
                   "    pm.expect(jsonData.estado).to.eql(\"CONFIRMADO\");",
                   "    pm.expect(jsonData.pagado).to.be.true;",
-                  "    pm.expect(jsonData.costoAcordado).to.eql(15000.0);",
+                  "    pm.expect(jsonData.costoAcordado).to.eql(32000.0);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1151,7 +1152,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"fecha\": \"2026-11-27\",\n    \"horaInicio\": \"10:30:00\"\n}"
+              "raw": "{\n    \"nuevaFecha\": \"2026-11-19\",\n    \"nuevaHoraInicio\": \"10:00:00\"\n}"
             },
             "url": {
               "raw": "{{gateway_url}}/api/reservas/turnos/2/reprogramacion",
@@ -1200,10 +1201,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"motivo\": \"Imprevisto laboral del paciente\"\n}"
-            },
             "url": {
               "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_cv01_id}}/cancelacion",
               "host": [
@@ -1220,7 +1217,7 @@
           }
         },
         {
-          "name": "08. Cierre de Atención Médica por Profesional (FUNC-11)",
+          "name": "08. Cierre de Atención Médica por Profesional (FUNC-12)",
           "event": [
             {
               "listen": "test",
@@ -1229,11 +1226,10 @@
                   "pm.test(\"Status code es 200 OK\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test(\"Turno pasa a estado ATENDIDO con observaciones clinicas\", function () {",
+                  "pm.test(\"Turno pasa a estado ATENDIDO\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.id).to.eql(2);",
                   "    pm.expect(jsonData.estado).to.eql(\"ATENDIDO\");",
-                  "    pm.expect(jsonData.observacionesClinicas).to.include(\"cardiovascular\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1254,10 +1250,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"observacionesClinicas\": \"Paciente en excelente estado cardiovascular. Control en 6 meses.\"\n}"
+              "raw": "{\n    \"resultado\": \"ATENDIDO\"\n}"
             },
             "url": {
-              "raw": "{{gateway_url}}/api/reservas/turnos/2/atencion",
+              "raw": "{{gateway_url}}/api/reservas/turnos/2/cierre-atencion",
               "host": [
                 "{{gateway_url}}"
               ],
@@ -1266,7 +1262,7 @@
                 "reservas",
                 "turnos",
                 "2",
-                "atencion"
+                "cierre-atencion"
               ]
             }
           }
@@ -1287,14 +1283,14 @@
                   "pm.test(\"Status code es 200 OK\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test(\"Notificaciones registradas con X-Correlation-Id y estado de envio\", function () {",
+                  "pm.test(\"Notificaciones registradas con estado de envio y header X-Correlation-Id\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.be.an('array');",
                   "    pm.expect(jsonData.length).to.be.at.least(1);",
                   "    var notif = jsonData[0];",
-                  "    pm.expect(notif.correlationId).to.be.a('string');",
                   "    pm.expect(notif.canal).to.be.a('string');",
                   "    pm.expect(notif.estadoEnvio).to.be.oneOf([\"ENVIADO\", \"ERROR\"]);",
+                  "    pm.expect(pm.response.headers.has(\"X-Correlation-Id\")).to.be.true;",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1310,7 +1306,7 @@
               }
             ],
             "url": {
-              "raw": "{{gateway_url}}/api/reservas/notificaciones?profesionalId=1",
+              "raw": "{{gateway_url}}/api/reservas/notificaciones?pacienteId=1",
               "host": [
                 "{{gateway_url}}"
               ],
@@ -1321,7 +1317,7 @@
               ],
               "query": [
                 {
-                  "key": "profesionalId",
+                  "key": "pacienteId",
                   "value": "1"
                 }
               ]

@@ -7,7 +7,7 @@ Esta carpeta contiene la **Suite de Pruebas de Integración y Casos de Verificac
 ## 📁 Archivos Disponibles
 
 1. **`MediTurnos_API.postman_collection.json`**:
-   - Colección v2.1 de Postman con **20 peticiones organizadas en 5 fases lógicas**.
+   - Colección v2.1 de Postman con **25 peticiones organizadas en 5 fases lógicas**.
    - Contiene scripts de pre-solicitud (`Pre-request Scripts`) y validaciones automáticas (`Tests`) con aserciones `pm.test` en JavaScript.
    - Gestiona automáticamente la captura dinámica de tokens Bearer de Keycloak y los IDs de los turnos generados.
 
@@ -67,10 +67,10 @@ npx newman run docs/postman/MediTurnos_API.postman_collection.json \
 | | `CV-02` / `RN-03` | **Colisión de Consultorio N:1**: Dra. Martínez intenta reservar el mismo consultorio Box 101 en la misma franja. | `409 Conflict` |
 | | `CV-03` / `RN-02` | **Recurso No Disponible**: Intento de reservar servicio con equipamiento inoperativo (Holter). | `409 Conflict` / `422 Unprocessable` |
 | | `CV-04` / `RN-04` | **Confirmación por Cobro**: Registro de pago exacto transiciona turno a `CONFIRMADO` (`pagado = true`). | `200 OK` |
-| | `CV-06` / `RN-06` | **Bloqueo de Agenda**: Profesional bloquea franja por congreso; turnos afectados pasan a `PENDIENTE_REPROGRAMACION`. | `201 Created` |
+| | `CV-06` / `RN-06` | **Bloqueo de Agenda**: Profesional bloquea franja por congreso (`POST /api/reservas/turnos/cancelacion-bloque-profesional`); turnos afectados pasan a `PENDIENTE_REPROGRAMACION`. | `200 OK` |
 | | `CV-07` / `RN-07` | **Reprogramación Prioritaria Sin Doble Cobro**: Paciente reprograma turno afectado; pasa directo a `CONFIRMADO` sin nuevo cobro. | `200 OK` |
 | | `CV-05` / `RN-05` | **Cancelación y Liberación**: Paciente cancela turno; se liberan inmediatamente los 4 recursos. | `200 OK` |
-| | `FUNC-11` | **Cierre Clínico**: Dr. González completa observaciones clínicas y pasa turno a `ATENDIDO`. | `200 OK` |
+| | `FUNC-12` | **Cierre de Atención Médica**: Dr. González registra el cierre de atención (`PATCH /api/reservas/turnos/{id}/cierre-atencion`) y pasa turno a `ATENDIDO`. | `200 OK` |
 | **`04. Auditoría y Trazabilidad`**| `RN-08` / `INT-01` | Auditoría de notificaciones persistidas en PostgreSQL con estado de entrega (`ENVIADO`/`ERROR`). | `200 OK` |
 | | `TEC-01` | Verificación de trazabilidad distribuida e inyección de `X-Correlation-Id`. | `200 OK` |
 
@@ -78,5 +78,5 @@ npx newman run docs/postman/MediTurnos_API.postman_collection.json \
 
 ## 🛡️ Principios Cumplidos en los Contratos (`API-01`)
 
-- **Prohibición de Verbos en las URLs:** Todas las rutas usan sustantivos que representan recursos (`/api/catalogo/sedes`, `/api/catalogo/compatibilidad`, `/api/reservas/turnos/{id}/pagos`, `/api/reservas/turnos/{id}/reprogramacion`, `/api/reservas/turnos/{id}/cancelacion`, `/api/reservas/turnos/{id}/atencion`). La semántica de la operación se define exclusivamente mediante el verbo HTTP (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`).
-- **Formato Unificado de Errores:** Todos los rechazos de seguridad del Gateway y de negocio de los microservicios devuelven la estructura `ErrorResponseDTO` (`codigo`, `mensaje`, `status`, `timestamp`, `path`).
+- **Prohibición de Verbos en las URLs:** Todas las rutas usan sustantivos que representan recursos (`/api/catalogo/sedes`, `/api/catalogo/consultorios`, `/api/catalogo/compatibilidad`, `/api/reservas/turnos/{id}/pagos`, `/api/reservas/turnos/cancelacion-bloque-profesional`, `/api/reservas/turnos/{id}/reprogramacion`, `/api/reservas/turnos/{id}/cancelacion`, `/api/reservas/turnos/{id}/cierre-atencion`). La semántica de la operación se define exclusivamente mediante el verbo HTTP (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`).
+- **Formato Unificado de Errores:** Todos los rechazos de seguridad del Gateway y de negocio de los microservicios devuelven la estructura `ErrorResponseDTO` (`timestamp`, `status`, `error`, `ruleCode`, `message`, `path`, `correlationId`, `validationErrors`).

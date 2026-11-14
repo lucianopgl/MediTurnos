@@ -12,11 +12,12 @@ import java.util.Optional;
 
 public interface ServicioRepository extends JpaRepository<Servicio, Long> {
 
-    @Query("SELECT s FROM Servicio s WHERE (:especialidadId IS NULL OR s.especialidad.id = :especialidadId) " +
+    @EntityGraph(attributePaths = {"equipamientosRequeridos", "equipamientosRequeridos.sede", "especialidad"})
+    @Query("SELECT DISTINCT s FROM Servicio s WHERE (:especialidadId IS NULL OR s.especialidad.id = :especialidadId) " +
            "AND (:activo IS NULL OR s.activo = :activo)")
     List<Servicio> searchByFiltros(@Param("especialidadId") Long especialidadId, @Param("activo") Boolean activo);
 
-    @EntityGraph(attributePaths = {"equipamientosRequeridos", "especialidad"})
+    @EntityGraph(attributePaths = {"equipamientosRequeridos", "equipamientosRequeridos.sede", "especialidad"})
     @Query("SELECT s FROM Servicio s WHERE s.id = :id")
     Optional<Servicio> findWithDetailsById(@Param("id") Long id);
 

@@ -14,5 +14,7 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
 
     List<Notificacion> findByEstadoEnvioOrderByFechaEnvioDesc(EstadoEnvioNotificacion estadoEnvio);
 
+    List<Notificacion> findByPacienteIdAndEstadoEnvioOrderByFechaEnvioDesc(Long pacienteId, EstadoEnvioNotificacion estadoEnvio);
+
     List<Notificacion> findByTurnoIdOrderByFechaEnvioDesc(Long turnoId);
 }

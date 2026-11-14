@@ -283,6 +283,7 @@ flowchart TB
 
     MS_RES -->|"3. Colaboración Síncrona (Spring RestClient)\nValida compatibilidad de catálogo o registra bloqueo\ny obtiene IDs de recursos, duración y costo"| MS_CAT
 
+    GW -.->|"Dependencia Maven (pom.xml)"| COMMON
     MS_RES -.->|"Dependencia Maven (pom.xml)"| COMMON
     MS_CAT -.->|"Dependencia Maven (pom.xml)"| COMMON
 
@@ -578,16 +579,24 @@ MediTurnos/
 - [x] Implementación del microservicio `ms-reservas` (puerto `8082`, `schema_reservas`, reglas `RN-03` a `RN-08`, cliente síncrono `RestClient` y notificaciones resilientes).
 - [x] Implementación del perímetro reactivo `api-gateway` (puerto `8080`, Netty/WebFlux, autenticación OAuth2 JWT Keycloak, mapeo RBAC y trazabilidad `X-Correlation-Id`).
 - [x] Orquestación contenerizada reproducible con Docker y Docker Compose (`mediturnos-net`, volúmenes nombrados, `init-db.sql` y `realm-export.json`).
-- [x] Suite de Pruebas Automatizadas E2E (`scripts/test-system-e2e.ps1` con 20/20 casos aprobados) y Colección completa de Postman/Newman (`docs/postman/`).
+- [x] Suite de Pruebas Automatizadas E2E (`scripts/test-system-e2e.ps1` con 21/21 casos aprobados) y Colección completa de Postman/Newman (`docs/postman/`).
 
 ---
 
 ### 🚀 Guía Rápida de Despliegue y Ejecución de Pruebas
 
-#### 1. Despliegue del Sistema con Docker Compose
+#### 1. Compilación de Artefactos Maven y Despliegue con Docker Compose
 Desde el directorio raíz `MediTurnos/`:
 ```bash
-# Iniciar todos los contenedores (PostgreSQL, Keycloak, Catálogo, Reservas y Gateway)
+# 1. Instalar la librería común reutilizable en el repositorio local (.m2)
+mvn -f mediturnos-common-lib/pom.xml clean install -DskipTests
+
+# 2. Empaquetar los 3 servicios ejecutables (target/*.jar copiados por los Dockerfiles)
+mvn -f ms-catalogo-recursos/pom.xml clean package -DskipTests
+mvn -f ms-reservas/pom.xml clean package -DskipTests
+mvn -f api-gateway/pom.xml clean package -DskipTests
+
+# 3. Iniciar todos los contenedores (PostgreSQL, Keycloak, Catálogo, Reservas y Gateway)
 docker compose up -d --build
 ```
 > Los servicios quedarán operativos en la red `mediturnos-net`. Los puertos públicos expuestos en el host son:

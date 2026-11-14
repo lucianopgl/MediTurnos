@@ -263,6 +263,19 @@ try {
 }
 Assert-Step "CV-07: Reprogramación Prioritaria Sin Doble Cobro (RN-07)" $cv07_ok "Turno #$turnoAReprogramar vuelve directo a CONFIRMADO conservando pagado = true"
 
+# FUNC-12: Cierre de Atención Médica por el Profesional
+$func12_ok = $false
+try {
+    $bodyCierre = @{
+        resultado = "ATENDIDO"
+    } | ConvertTo-Json
+    $cierreRes = Invoke-RestMethod -Uri "$BaseUrl/api/reservas/turnos/$turnoAReprogramar/cierre-atencion" -Method Patch -Headers $headersDrGonzalez -ContentType "application/json; charset=utf-8" -Body $bodyCierre
+    if ($cierreRes.estado -eq "ATENDIDO") { $func12_ok = $true }
+} catch {
+    Write-Host "     ↳ Debug FUNC-12 Error: $($_.Exception.Message)" -ForegroundColor Magenta
+}
+Assert-Step "FUNC-12: Cierre de Atención Médica por el Profesional" $func12_ok "Turno #$turnoAReprogramar transiciona de CONFIRMADO a ATENDIDO"
+
 # CV-05: Cancelación de Turno por el Paciente (RN-05)
 # Cancelamos el turno #1 creado en esta sesión
 $cv05_ok = $false

@@ -1,6 +1,8 @@
 package utn.frc.backend.mediturnos.common.config;
 
+import jakarta.servlet.Servlet;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -15,6 +17,7 @@ import utn.frc.backend.mediturnos.common.filter.CorrelationIdFilter;
  * en ms-catalogo-recursos y ms-reservas al incluir el JAR como dependencia Maven.
  */
 @AutoConfiguration
+@ConditionalOnClass({ Servlet.class, FilterRegistrationBean.class })
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class CommonLibAutoConfiguration {
 

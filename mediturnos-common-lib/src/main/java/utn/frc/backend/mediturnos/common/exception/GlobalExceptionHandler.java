@@ -107,6 +107,26 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String correlationId = resolveCorrelationId(request);
+        String exClassName = ex.getClass().getName();
+        if (exClassName.endsWith("AccessDeniedException") || exClassName.endsWith("AuthorizationDeniedException")) {
+            log.warn("[{}] Acceso denegado (403) en {}: {}",
+                    correlationId, request.getRequestURI(), ex.getMessage());
+
+            ErrorResponseDTO forbiddenBody = ErrorResponseDTO.builder()
+                    .timestamp(LocalDateTime.now())
+                    .status(HttpStatus.FORBIDDEN.value())
+                    .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                    .ruleCode("FORBIDDEN")
+                    .message(ex.getMessage() != null && !ex.getMessage().isBlank()
+                            ? ex.getMessage()
+                            : "No posee los permisos necesarios para ejecutar esta operación")
+                    .path(request.getRequestURI())
+                    .correlationId(correlationId)
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(forbiddenBody);
+        }
+
         log.error("[{}] Error interno no esperado en {}: {}",
                 correlationId, request.getRequestURI(), ex.getMessage(), ex);
 

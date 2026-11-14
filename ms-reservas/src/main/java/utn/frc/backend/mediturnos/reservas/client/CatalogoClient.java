@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import utn.frc.backend.mediturnos.common.dto.BloqueoAgendaRequestDTO;
@@ -87,6 +88,10 @@ public class CatalogoClient {
 
         if (status == HttpStatus.NOT_FOUND) {
             throw new RecursoNoEncontradoException(mensajeError);
+        } else if (status == HttpStatus.FORBIDDEN) {
+            throw new AccessDeniedException(mensajeError);
+        } else if (status == HttpStatus.BAD_REQUEST) {
+            throw new ReglaNegocioException(mensajeError, HttpStatus.BAD_REQUEST, ruleCode != null ? ruleCode : "BAD_REQUEST");
         } else if (status == HttpStatus.CONFLICT) {
             throw new RecursoNoDisponibleException(mensajeError);
         } else if (status == HttpStatus.UNPROCESSABLE_ENTITY) {

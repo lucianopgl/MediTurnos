@@ -19,6 +19,7 @@ public interface ProfesionalRepository extends JpaRepository<Profesional, Long> 
 
     Optional<Profesional> findByKeycloakSub(String keycloakSub);
 
+    @EntityGraph(attributePaths = {"serviciosHabilitados", "consultorioFijo", "consultorioFijo.sede", "especialidad"})
     @Query("SELECT DISTINCT p FROM Profesional p " +
            "LEFT JOIN p.serviciosHabilitados s " +
            "WHERE (:especialidadId IS NULL OR p.especialidad.id = :especialidadId) " +

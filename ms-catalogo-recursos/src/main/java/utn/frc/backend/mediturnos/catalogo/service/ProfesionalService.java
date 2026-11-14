@@ -2,6 +2,11 @@ package utn.frc.backend.mediturnos.catalogo.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import utn.frc.backend.mediturnos.catalogo.dto.*;
@@ -56,7 +61,7 @@ public class ProfesionalService {
         Set<Servicio> servicios = new HashSet<>();
         if (request.getServiciosIds() != null && !request.getServiciosIds().isEmpty()) {
             servicios.addAll(servicioService.buscarEntidadesPorIds(request.getServiciosIds()));
-            validarCoherenciaSede(consultorio, servicios);
+            validarCoherenciaSedeYServicios(especialidad, consultorio, servicios);
         }
 
         Profesional profesional = Profesional.builder()
@@ -81,7 +86,7 @@ public class ProfesionalService {
         Profesional profesional = buscarEntidadPorId(profesionalId);
         List<Servicio> servicios = servicioService.buscarEntidadesPorIds(serviciosIds);
 
-        validarCoherenciaSede(profesional.getConsultorioFijo(), new HashSet<>(servicios));
+        validarCoherenciaSedeYServicios(profesional.getEspecialidad(), profesional.getConsultorioFijo(), new HashSet<>(servicios));
 
         profesional.getServiciosHabilitados().clear();
         profesional.getServiciosHabilitados().addAll(servicios);
@@ -111,9 +116,10 @@ public class ProfesionalService {
     @Transactional
     public HorarioProfesionalResponseDTO registrarHorario(Long profesionalId, HorarioProfesionalRequestDTO request) {
         Profesional profesional = buscarEntidadPorId(profesionalId);
+        verificarPropiedadProfesionalSiNoEsAdmin(profesional);
 
         if (!request.getHoraFin().isAfter(request.getHoraInicio())) {
-            throw new ReglaNegocioException("La hora de fin debe ser posterior a la hora de inicio");
+            throw new ReglaNegocioException("La hora de fin debe ser posterior a la hora de inicio", HttpStatus.BAD_REQUEST, "RN-01");
         }
 
         List<HorarioProfesional> horariosDia = horarioProfesionalRepository
@@ -166,12 +172,13 @@ public class ProfesionalService {
     @Transactional
     public BloqueoAgendaResponseDTO registrarBloqueo(Long profesionalId, BloqueoAgendaRequestDTO request) {
         Profesional profesional = buscarEntidadPorId(profesionalId);
+        verificarPropiedadProfesionalSiNoEsAdmin(profesional);
         if (Boolean.FALSE.equals(profesional.getActivo())) {
             throw new ReglaNegocioException("No se puede registrar un bloqueo para un profesional inactivo");
         }
 
         if (!request.getHoraFin().isAfter(request.getHoraInicio())) {
-            throw new ReglaNegocioException("La hora de fin del bloqueo debe ser posterior a la hora de inicio");
+            throw new ReglaNegocioException("La hora de fin del bloqueo debe ser posterior a la hora de inicio", HttpStatus.BAD_REQUEST, "RN-06");
         }
 
         BloqueoProfesional bloqueo = BloqueoProfesional.builder()
@@ -193,9 +200,29 @@ public class ProfesionalService {
     // VALIDACIONES DE COHERENCIA Y MAPEOS
     // =========================================================================
 
-    private void validarCoherenciaSede(Consultorio consultorio, Set<Servicio> servicios) {
+    private void verificarPropiedadProfesionalSiNoEsAdmin(Profesional profesional) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean esAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROL_ADMIN"));
+            boolean esProfesional = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROL_PROFESIONAL"));
+            if (esProfesional && !esAdmin && auth.getPrincipal() instanceof Jwt jwt) {
+                if (jwt.getSubject() != null && !jwt.getSubject().equals(profesional.getKeycloakSub())) {
+                    throw new AccessDeniedException("Un profesional solo puede gestionar su propia agenda y bloqueos horarios");
+                }
+            }
+        }
+    }
+
+    private void validarCoherenciaSedeYServicios(Especialidad especialidad, Consultorio consultorio, Set<Servicio> servicios) {
         Long sedeConsultorioId = consultorio.getSede().getId();
         for (Servicio servicio : servicios) {
+            if (Boolean.FALSE.equals(servicio.getActivo())) {
+                throw new RecursoNoDisponibleException("No se puede habilitar el servicio inactivo '" + servicio.getNombre() + "'");
+            }
+            if (!especialidad.getId().equals(servicio.getEspecialidad().getId())) {
+                throw new ReglaNegocioException("El servicio '" + servicio.getNombre()
+                        + "' no pertenece a la especialidad '" + especialidad.getNombre() + "' del profesional");
+            }
             for (Equipamiento equipamiento : servicio.getEquipamientosRequeridos()) {
                 if (!sedeConsultorioId.equals(equipamiento.getSede().getId())) {
                     throw new CoherenciaSedeException("Incoherencia física de sede: el consultorio fijo pertenece a la sede id="

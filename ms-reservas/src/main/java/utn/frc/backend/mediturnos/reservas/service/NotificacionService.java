@@ -5,11 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import utn.frc.backend.mediturnos.common.dto.ErrorResponseDTO;
 import utn.frc.backend.mediturnos.common.enums.CanalNotificacion;
 import utn.frc.backend.mediturnos.common.enums.EstadoEnvioNotificacion;
 import utn.frc.backend.mediturnos.common.enums.TipoAlertaNotificacion;
@@ -24,13 +22,15 @@ import java.util.Map;
 
 /**
  * Servicio resiliente de despacho y auditoría de notificaciones externas (RN-08).
- * Su ejecución se aísla con REQUIRES_NEW para que un fallo en la API externa nunca
- * revierta la transacción de negocio del turno.
+ * Captura cualquier excepción de la API externa o de persistencia de auditoría
+ * para que un fallo en la notificación jamás revierta la transacción de negocio del turno.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificacionService {
+
+    private static final int MAX_DETALLE_LENGTH = 500;
 
     private final NotificacionRepository notificacionRepository;
     private final RestClient notificacionRestClient;
@@ -67,17 +67,26 @@ public class NotificacionService {
             detalleFinal = "FALLO_ENVIO: " + ex.getMessage();
         }
 
-        Notificacion notificacion = Notificacion.builder()
-                .turno(turno)
-                .paciente(paciente)
-                .canal(CanalNotificacion.TELEGRAM)
-                .destinatario(destinatario)
-                .tipoAlerta(tipoAlerta)
-                .estadoEnvio(estadoEnvio)
-                .detalleMensaje(detalleFinal)
-                .build();
+        if (detalleFinal != null && detalleFinal.length() > MAX_DETALLE_LENGTH) {
+            detalleFinal = detalleFinal.substring(0, MAX_DETALLE_LENGTH);
+        }
 
-        notificacionRepository.save(notificacion);
+        try {
+            Notificacion notificacion = Notificacion.builder()
+                    .turno(turno)
+                    .paciente(paciente)
+                    .canal(CanalNotificacion.TELEGRAM)
+                    .destinatario(destinatario)
+                    .tipoAlerta(tipoAlerta)
+                    .estadoEnvio(estadoEnvio)
+                    .detalleMensaje(detalleFinal)
+                    .build();
+
+            notificacionRepository.save(notificacion);
+        } catch (Exception persistEx) {
+            log.error("[RN-08] Error al persistir auditoría de notificación para turno #{}: {}",
+                    turno != null ? turno.getId() : null, persistEx.getMessage());
+        }
     }
 
     private void ejecutarLlamadaExterna(String destinatario, String mensaje) {
@@ -97,7 +106,9 @@ public class NotificacionService {
     @Transactional(readOnly = true)
     public List<NotificacionResponseDTO> listarNotificaciones(EstadoEnvioNotificacion estado, Long pacienteId) {
         List<Notificacion> list;
-        if (pacienteId != null) {
+        if (pacienteId != null && estado != null) {
+            list = notificacionRepository.findByPacienteIdAndEstadoEnvioOrderByFechaEnvioDesc(pacienteId, estado);
+        } else if (pacienteId != null) {
             list = notificacionRepository.findByPacienteIdOrderByFechaEnvioDesc(pacienteId);
         } else if (estado != null) {
             list = notificacionRepository.findByEstadoEnvioOrderByFechaEnvioDesc(estado);
