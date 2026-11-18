@@ -6,12 +6,16 @@ Esta carpeta contiene la **Suite de Pruebas de Integración y Casos de Verificac
 
 ## 📁 Archivos Disponibles
 
-1. **`MediTurnos_API.postman_collection.json`**:
+1. **`MediTurnos_API.postman_collection.json`** *(Suite E2E de Reglas de Negocio)*:
    - Colección v2.1 de Postman con **25 peticiones organizadas en 5 fases lógicas**.
+   - Valida de extremo a extremo los criterios de verificación de la cátedra (**CV-01 a CV-08**) y las reglas de negocio (**RN-01 a RN-08**), incluyendo rechazos esperados (`401`, `403`, `409`, `422`).
    - Contiene scripts de pre-solicitud (`Pre-request Scripts`) y validaciones automáticas (`Tests`) con aserciones `pm.test` en JavaScript.
-   - Gestiona automáticamente la captura dinámica de tokens Bearer de Keycloak y los IDs de los turnos generados.
 
-2. **`MediTurnos_Local_Docker.postman_environment.json`**:
+2. **`MediTurnos_Endpoints_Referencia.postman_collection.json`** *(Catálogo Completo de Endpoints 31/31)*:
+   - Colección v2.1 de Postman con **37 peticiones** (5 tokens OIDC + Actuator Health del Gateway + los **31 endpoints REST completos**: 19 de `ms-catalogo-recursos` y 12 de `ms-reservas`) organizadas por microservicio y controlador.
+   - Pensada tanto para demostrar cada endpoint individualmente frente al tribunal como para correrla completa en *Collection Runner* o Newman sin alterar los turnos semilla.
+
+3. **`MediTurnos_Local_Docker.postman_environment.json`** *(Entorno Compartido)*:
    - Entorno con las variables base (`gateway_url: http://localhost:8080`, `keycloak_url: http://localhost:8083`, realm y client).
    - Variables dinámicas de sesión para almacenar tokens (`admin_token`, `profesional_token`, `dra_martinez_token`, `paciente_perez_token`, `paciente_gomez_token`) y correlaciones.
 
@@ -22,8 +26,9 @@ Esta carpeta contiene la **Suite de Pruebas de Integración y Casos de Verificac
 ### Paso 1: Importar los archivos
 1. Abre **Postman**.
 2. Haz clic en el botón **Import** (esquina superior izquierda).
-3. Arrastra o selecciona los dos archivos:
+3. Arrastra o selecciona los archivos de `docs/postman/`:
    - `MediTurnos_API.postman_collection.json`
+   - `MediTurnos_Endpoints_Referencia.postman_collection.json`
    - `MediTurnos_Local_Docker.postman_environment.json`
 
 ### Paso 2: Seleccionar el Entorno
@@ -31,21 +36,25 @@ Esta carpeta contiene la **Suite de Pruebas de Integración y Casos de Verificac
 2. Selecciona **MediTurnos — Local Docker Environment**.
 
 ### Paso 3: Ejecución Automatizada (Collection Runner)
-1. Haz clic derecho sobre la colección importada **`🏥 MediTurnos API — Suite E2E (TPI UTN FRC 2026)`**.
+1. Haz clic derecho sobre cualquiera de las dos colecciones importadas (`🏥 MediTurnos API — Suite E2E...` o `📘 MediTurnos API — Referencia Completa de Endpoints...`).
 2. Selecciona **Run collection**.
-3. Asegúrate de que todas las carpetas y peticiones estén tildadas y en orden secuencial (de `00` a `04`).
-4. Haz clic en **Run 🏥 MediTurnos API...**.
-5. Verás cómo todas las peticiones se ejecutan secuencialmente con **100% de tests aprobados (verde)**.
+3. Asegúrate de que todas las carpetas y peticiones estén tildadas y en orden secuencial.
+4. Haz clic en **Run** y verás el **100% de tests aprobados (verde)**.
 
 ---
 
 ## ⚡ Ejecución desde Terminal con Newman (CLI)
 
-Si tienes Node.js instalado, puedes ejecutar toda la suite directamente desde la línea de comandos sin abrir Postman:
+Si tienes Node.js instalado, puedes ejecutar cualquiera de las dos colecciones directamente desde la línea de comandos sin abrir Postman:
 
 ```bash
-# Desde la raíz del repositorio
+# 1. Suite E2E de Reglas de Negocio (CV-01 a CV-08)
 npx newman run docs/postman/MediTurnos_API.postman_collection.json \
+    -e docs/postman/MediTurnos_Local_Docker.postman_environment.json \
+    --color on
+
+# 2. Catálogo Completo de Referencia (31/31 Endpoints REST)
+npx newman run docs/postman/MediTurnos_Endpoints_Referencia.postman_collection.json \
     -e docs/postman/MediTurnos_Local_Docker.postman_environment.json \
     --color on
 ```

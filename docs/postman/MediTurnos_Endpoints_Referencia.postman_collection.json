@@ -1,0 +1,2240 @@
+{
+  "info": {
+    "_postman_id": "mediturnos-endpoints-referencia-2026",
+    "name": "📘 MediTurnos API — Referencia Completa de Endpoints (31/31)",
+    "description": "Colección de referencia ejecutables con un ejemplo funcional de cada uno de los 31 endpoints REST desarrollados en MediTurnos API (19 en ms-catalogo-recursos + 12 en ms-reservas), más autenticación Keycloak y Actuator Health del API Gateway.\n\nReutiliza el entorno MediTurnos_Local_Docker.postman_environment.json y está preparada tanto para probar endpoints individuales frente al tribunal como para ejecutarse completa en Collection Runner / Newman sin alterar los turnos semilla.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00. Autenticación Keycloak (OIDC JWKS)",
+      "description": "Obtención de tokens JWT Bearer desde Keycloak 24 para cada uno de los roles del sistema (ROL_ADMIN, ROL_PROFESIONAL, ROL_PACIENTE).",
+      "item": [
+        {
+          "name": "01. Token ROL_ADMIN (admin.mediturnos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de Admin obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"admin_token\", jsonData.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "admin.mediturnos",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "02. Token ROL_PROFESIONAL (dr.gonzalez)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de Dr. González obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"profesional_token\", jsonData.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "dr.gonzalez",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "03. Token ROL_PROFESIONAL (dra.martinez)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de Dra. Martínez obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"dra_martinez_token\", jsonData.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "dra.martinez",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "04. Token ROL_PACIENTE (paciente.perez)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de Paciente Pérez obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"paciente_perez_token\", jsonData.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "paciente.perez",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "05. Token ROL_PACIENTE (paciente.gomez)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de Paciente Gómez obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"paciente_gomez_token\", jsonData.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "paciente.gomez",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01. API Gateway — Salud y Diagnóstico",
+      "description": "Verificación de disponibilidad pública del API Gateway (Spring Cloud Gateway).",
+      "item": [
+        {
+          "name": "01. GET /actuator/health — Estado del API Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Gateway Actuator está UP\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"UP\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/actuator/health",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Microservicio 1: ms-catalogo-recursos (/api/catalogo)",
+      "description": "Cobertura completa de los 19 endpoints REST expuestos por los 7 controladores de ms-catalogo-recursos.",
+      "item": [
+        {
+          "name": "02.1. Sedes (SedeController - FUNC-01)",
+          "item": [
+            {
+              "name": "01. POST /api/catalogo/sedes — Registrar Nueva Sede Física",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_ref\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Sede creada y ID guardado\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.activa).to.be.true;",
+                      "    pm.environment.set(\"sede_creada_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"Sede Nueva Córdoba {{sufijo_ref}}\",\n    \"direccion\": \"Bv. Chacabuco 850, Córdoba\",\n    \"telefono\": \"+54 351 460-9000\",\n    \"activa\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/sedes",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "sedes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. GET /api/catalogo/sedes — Listar Sedes Físicas Activas",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna al menos 2 sedes activas\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(2);",
+                      "    pm.expect(jsonData[0].activa).to.be.true;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/sedes?activa=true",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "sedes"
+                  ],
+                  "query": [
+                    {
+                      "key": "activa",
+                      "value": "true"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.2. Consultorios (ConsultorioController - FUNC-02)",
+          "item": [
+            {
+              "name": "01. POST /api/catalogo/consultorios — Registrar Consultorio Físico",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_ref\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Consultorio creado en Sede 1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.sedeId).to.eql(1);",
+                      "    pm.expect(jsonData.operativo).to.be.true;",
+                      "    pm.environment.set(\"consultorio_creado_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"sedeId\": 1,\n    \"codigoNombre\": \"Box Demo {{sufijo_ref}}\",\n    \"operativo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/consultorios",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "consultorios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. PATCH /api/catalogo/consultorios/{id}/estado-operativo — Actualizar Estado Operativo de Consultorio",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"consultorio_creado_id\")) {",
+                      "    pm.environment.set(\"consultorio_creado_id\", \"1\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Estado operativo actualizado a true\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.operativo).to.be.true;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"operativo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/consultorios/{{consultorio_creado_id}}/estado-operativo",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "consultorios",
+                    "{{consultorio_creado_id}}",
+                    "estado-operativo"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "03. GET /api/catalogo/consultorios — Listar Consultorios por Sede y Estado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna consultorios operativos de Sede 1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "    pm.expect(jsonData[0].operativo).to.be.true;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/consultorios?sedeId=1&operativo=true",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "consultorios"
+                  ],
+                  "query": [
+                    {
+                      "key": "sedeId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "operativo",
+                      "value": "true"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.3. Equipamientos (EquipamientoController - FUNC-03)",
+          "item": [
+            {
+              "name": "01. POST /api/catalogo/equipamientos — Registrar Equipamiento Médico",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_ref\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Equipamiento registrado y ID guardado\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.sedeId).to.eql(1);",
+                      "    pm.expect(jsonData.operativo).to.be.true;",
+                      "    pm.environment.set(\"equipamiento_creado_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"sedeId\": 1,\n    \"nombre\": \"Tensiómetro Digital Omron {{sufijo_ref}}\",\n    \"codigoInventario\": \"EQ-CEN-TEN-{{sufijo_ref}}\",\n    \"operativo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/equipamientos",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "equipamientos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. PATCH /api/catalogo/equipamientos/{id}/estado-operativo — Actualizar Estado Operativo de Equipamiento",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"equipamiento_creado_id\")) {",
+                      "    pm.environment.set(\"equipamiento_creado_id\", \"1\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Estado operativo del equipamiento es true\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.operativo).to.be.true;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"operativo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/equipamientos/{{equipamiento_creado_id}}/estado-operativo",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "equipamientos",
+                    "{{equipamiento_creado_id}}",
+                    "estado-operativo"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "03. GET /api/catalogo/equipamientos — Listar Equipamientos por Sede",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna equipamientos de Sede 1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/equipamientos?sedeId=1",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "equipamientos"
+                  ],
+                  "query": [
+                    {
+                      "key": "sedeId",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.4. Especialidades (EspecialidadController - FUNC-04)",
+          "item": [
+            {
+              "name": "01. POST /api/catalogo/especialidades — Crear Especialidad Médica",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_ref\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Especialidad creada y ID guardado\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.activa).to.be.true;",
+                      "    pm.environment.set(\"especialidad_creada_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"Neurología Clínica {{sufijo_ref}}\",\n    \"descripcion\": \"Diagnóstico y tratamiento del sistema nervioso\",\n    \"activa\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/especialidades",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "especialidades"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. GET /api/catalogo/especialidades — Listar Especialidades Disponibles",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna especialidades activas\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/especialidades?activa=true",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "especialidades"
+                  ],
+                  "query": [
+                    {
+                      "key": "activa",
+                      "value": "true"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.5. Servicios Médicos (ServicioController - FUNC-04)",
+          "item": [
+            {
+              "name": "01. POST /api/catalogo/servicios — Definir Servicio Médico con Duración, Costo y Equipos N:N",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_ref\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Servicio creado con duracionMinutos=40 y costo=28000\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.duracionMinutos).to.eql(40);",
+                      "    pm.expect(jsonData.costo).to.eql(28000.0);",
+                      "    pm.environment.set(\"servicio_creado_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"especialidadId\": 1,\n    \"nombre\": \"Ergometría Computarizada {{sufijo_ref}}\",\n    \"descripcion\": \"Prueba de esfuerzo graduada con monitoreo ECG\",\n    \"duracionMinutos\": 40,\n    \"costo\": 28000.00,\n    \"activo\": true,\n    \"equipamientosIds\": [2]\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/servicios",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "servicios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. GET /api/catalogo/servicios — Listar Servicios Médicos por Especialidad",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna servicios médicos de especialidad 1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/servicios?especialidadId=1&activo=true",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "servicios"
+                  ],
+                  "query": [
+                    {
+                      "key": "especialidadId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "activo",
+                      "value": "true"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.6. Profesionales, Horarios y Bloqueos (ProfesionalController - FUNC-05 y FUNC-10)",
+          "item": [
+            {
+              "name": "01. POST /api/catalogo/profesionales — Registrar Profesional con Consultorio Fijo N:1 y Servicios",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_ref\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Profesional creado y vinculado a consultorio fijo y servicios\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.consultorioFijoId).to.eql(1);",
+                      "    pm.environment.set(\"profesional_creado_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"keycloakSub\": \"prof-demo-sub-{{sufijo_ref}}\",\n    \"especialidadId\": 1,\n    \"consultorioFijoId\": 1,\n    \"matricula\": \"MP-{{sufijo_ref}}\",\n    \"nombre\": \"Roberto\",\n    \"apellido\": \"Favaloro\",\n    \"email\": \"dr.favaloro.{{sufijo_ref}}@mediturnos.com.ar\",\n    \"activo\": true,\n    \"serviciosIds\": [1, 2]\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/profesionales",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "profesionales"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. GET /api/catalogo/profesionales — Buscar Profesionales por Especialidad y Servicio",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna profesionales activos habilitados\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/profesionales?especialidadId=1&servicioId=1&activo=true",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "profesionales"
+                  ],
+                  "query": [
+                    {
+                      "key": "especialidadId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "servicioId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "activo",
+                      "value": "true"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "03. PUT /api/catalogo/profesionales/{id}/servicios — Actualizar Nómina de Servicios Habilitados",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"profesional_creado_id\")) {",
+                      "    pm.environment.set(\"profesional_creado_id\", \"1\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Servicios habilitados actualizados a 3 elementos\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.serviciosHabilitadosIds.length).to.eql(3);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"serviciosIds\": [1, 2, 3]\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/profesionales/{{profesional_creado_id}}/servicios",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "profesionales",
+                    "{{profesional_creado_id}}",
+                    "servicios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "04. POST /api/catalogo/profesionales/{id}/horarios — Configurar Bloque en Plantilla Horaria Semanal",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"profesional_creado_id\")) {",
+                      "    pm.environment.set(\"profesional_creado_id\", \"1\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Bloque horario de SABADO creado\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.diaSemana).to.eql(\"SABADO\");",
+                      "    pm.expect(jsonData.activo).to.be.true;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"diaSemana\": \"SABADO\",\n    \"horaInicio\": \"08:00:00\",\n    \"horaFin\": \"12:00:00\",\n    \"activo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/profesionales/{{profesional_creado_id}}/horarios",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "profesionales",
+                    "{{profesional_creado_id}}",
+                    "horarios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "05. GET /api/catalogo/profesionales/{id}/horarios — Consultar Plantilla Horaria y Bloqueos del Profesional",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna plantilla semanal y bloqueos del profesional 1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.profesionalId).to.eql(1);",
+                      "    pm.expect(jsonData.horariosSemanales).to.be.an('array');",
+                      "    pm.expect(jsonData.horariosSemanales.length).to.be.at.least(1);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/profesionales/1/horarios",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "profesionales",
+                    "1",
+                    "horarios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "06. POST /api/catalogo/profesionales/{id}/bloqueos — Registrar Bloqueo Puntual en Catálogo",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Bloqueo registrado para Dr. González\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.profesionalId).to.eql(1);",
+                      "    pm.expect(jsonData.fecha).to.eql(\"2026-12-24\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"fecha\": \"2026-12-24\",\n    \"horaInicio\": \"12:00:00\",\n    \"horaFin\": \"14:00:00\",\n    \"motivo\": \"Asueto Víspera de Navidad\"\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/profesionales/1/bloqueos",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "profesionales",
+                    "1",
+                    "bloqueos"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.7. Compatibilidad Tripartita (CompatibilidadController - FUNC-05)",
+          "item": [
+            {
+              "name": "01. GET /api/catalogo/compatibilidad — Validar Compatibilidad Estática y Parametrizada (RN-01 y RN-02)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Compatibilidad confirmada para Box 101 y duración 30 min\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.consultorioFijoId).to.eql(1);",
+                      "    pm.expect(jsonData.duracionMinutos).to.eql(30);",
+                      "    pm.expect(jsonData.costo).to.eql(15000.0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/catalogo/compatibilidad?profesionalId=1&servicioId=1&fecha=2026-11-23&horaInicio=09:00:00",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "catalogo",
+                    "compatibilidad"
+                  ],
+                  "query": [
+                    {
+                      "key": "profesionalId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "servicioId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "fecha",
+                      "value": "2026-11-23"
+                    },
+                    {
+                      "key": "horaInicio",
+                      "value": "09:00:00"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. Microservicio 2: ms-reservas (/api/reservas)",
+      "description": "Cobertura completa de los 12 endpoints REST expuestos por los 3 controladores de ms-reservas.",
+      "item": [
+        {
+          "name": "03.1. Pacientes (PacienteController - FUNC-06)",
+          "item": [
+            {
+              "name": "01. POST /api/reservas/pacientes — Registrar Perfil de Paciente Vinculado a keycloak_sub",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"sufijo_pac\", Date.now().toString().slice(-6));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Paciente registrado con penalizaciones en 0\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.cantidadPenalizaciones).to.eql(0);",
+                      "    pm.environment.set(\"paciente_creado_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"keycloakSub\": \"pac-demo-sub-{{sufijo_pac}}\",\n    \"dni\": \"45{{sufijo_pac}}\",\n    \"nombre\": \"Luciano\",\n    \"apellido\": \"Paglino Demo\",\n    \"email\": \"paciente.{{sufijo_pac}}@mediturnos.com.ar\",\n    \"telefonoWhatsapp\": \"+5493515550999\"\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/pacientes",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "pacientes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. GET /api/reservas/pacientes/mi-perfil — Obtener Perfil del Paciente Autenticado (sub JWT)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Perfil coincide con Paciente Juan Pérez (id=1)\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.eql(1);",
+                      "    pm.expect(jsonData.dni).to.eql(\"40111222\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/pacientes/mi-perfil",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "pacientes",
+                    "mi-perfil"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "03. GET /api/reservas/pacientes/{id} — Consultar Datos de Paciente por ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna datos del paciente id=1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.eql(1);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/pacientes/1",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "pacientes",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.2. Turnos y Pagos (TurnoController - FUNC-07 a FUNC-12)",
+          "item": [
+            {
+              "name": "01. POST /api/reservas/turnos — Solicitar y Reservar Turno Médico (FUNC-07)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "function formatFecha(d) {",
+                      "    var yyyy = d.getFullYear();",
+                      "    var mm = String(d.getMonth() + 1).padStart(2, '0');",
+                      "    var dd = String(d.getDate()).padStart(2, '0');",
+                      "    return yyyy + '-' + mm + '-' + dd;",
+                      "}",
+                      "function ajustarDiaHabil(d) {",
+                      "    while (d.getDay() === 0 || d.getDay() === 6) {",
+                      "        d.setDate(d.getDate() + 1);",
+                      "    }",
+                      "    return d;",
+                      "}",
+                      "var offset = 45 + Math.floor(Math.random() * 100);",
+                      "var dTurno = new Date();",
+                      "dTurno.setDate(dTurno.getDate() + offset);",
+                      "ajustarDiaHabil(dTurno);",
+                      "",
+                      "var dReprog = new Date(dTurno.getTime());",
+                      "dReprog.setDate(dReprog.getDate() + 7);",
+                      "ajustarDiaHabil(dReprog);",
+                      "",
+                      "var horas = ['08:00:00', '08:30:00', '09:00:00', '09:30:00', '10:00:00', '10:30:00', '11:00:00'];",
+                      "var horaElegida = horas[Math.floor(Math.random() * horas.length)];",
+                      "",
+                      "pm.environment.set(\"fecha_turno_ref\", formatFecha(dTurno));",
+                      "pm.environment.set(\"hora_turno_ref\", horaElegida);",
+                      "pm.environment.set(\"fecha_reprog_ref\", formatFecha(dReprog));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test(\"Turno creado en estado RESERVADO sin pagar\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.be.a('number');",
+                      "    pm.expect(jsonData.estado).to.eql(\"RESERVADO\");",
+                      "    pm.expect(jsonData.pagado).to.be.false;",
+                      "    pm.environment.set(\"turno_ref_id\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"profesionalId\": 1,\n    \"servicioId\": 1,\n    \"fecha\": \"{{fecha_turno_ref}}\",\n    \"horaInicio\": \"{{hora_turno_ref}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "02. GET /api/reservas/turnos/{id} — Consultar Detalle y Estado de un Turno por ID",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"turno_ref_id\")) {",
+                      "    pm.environment.set(\"turno_ref_id\", \"1\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna el turno consultado\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(String(jsonData.id)).to.eql(String(pm.environment.get(\"turno_ref_id\")));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_ref_id}}",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos",
+                    "{{turno_ref_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "03. GET /api/reservas/turnos — Listar Turnos con Filtros Dinámicos (pacienteId, profesionalId, sedeId, fecha, estado)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna lista de turnos filtrados en estado RESERVADO\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "    pm.expect(jsonData[0].estado).to.eql(\"RESERVADO\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos?profesionalId=1&sedeId=1&estado=RESERVADO",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos"
+                  ],
+                  "query": [
+                    {
+                      "key": "profesionalId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "sedeId",
+                      "value": "1"
+                    },
+                    {
+                      "key": "estado",
+                      "value": "RESERVADO"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "04. POST /api/reservas/turnos/{id}/pagos — Registrar Pago y Confirmar Turno (FUNC-08 / RN-04)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"comprobante_ref\", \"PAY-REF-\" + Date.now());",
+                      "if (!pm.environment.get(\"turno_ref_id\")) {",
+                      "    pm.environment.set(\"turno_ref_id\", \"1\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Pago aprobado y turno en estado CONFIRMADO\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.estadoPago).to.eql(\"APROBADO\");",
+                      "    pm.expect(jsonData.estadoTurnoActual).to.eql(\"CONFIRMADO\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"comprobanteReferencia\": \"{{comprobante_ref}}\",\n    \"medioPago\": \"TARJETA_DEBITO\",\n    \"monto\": 15000.00\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_ref_id}}/pagos",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos",
+                    "{{turno_ref_id}}",
+                    "pagos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "05. POST /api/reservas/turnos/cancelacion-bloque-profesional — Bloquear Franja de Agenda y Pasar Turnos a PENDIENTE_REPROGRAMACION (FUNC-10 / RN-06)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"fecha_turno_ref\")) {",
+                      "    pm.environment.set(\"fecha_turno_ref\", \"2026-11-17\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Bloqueo afecta al turno creado y lo pasa a PENDIENTE_REPROGRAMACION\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.cantidadTurnosAfectados).to.be.at.least(1);",
+                      "    var turnoId = Number(pm.environment.get(\"turno_ref_id\"));",
+                      "    if (turnoId) {",
+                      "        pm.expect(jsonData.turnosAfectadosIds).to.include(turnoId);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"profesionalId\": 1,\n    \"fecha\": \"{{fecha_turno_ref}}\",\n    \"horaInicio\": \"08:00:00\",\n    \"horaFin\": \"13:00:00\",\n    \"motivo\": \"Jornada Científica de Cardiología\"\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos/cancelacion-bloque-profesional",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos",
+                    "cancelacion-bloque-profesional"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "06. PUT /api/reservas/turnos/{id}/reprogramacion — Reprogramar Turno Prioritario Sin Doble Cobro (FUNC-11 / RN-07)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"turno_ref_id\")) {",
+                      "    pm.environment.set(\"turno_ref_id\", \"2\");",
+                      "}",
+                      "if (!pm.environment.get(\"fecha_reprog_ref\")) {",
+                      "    pm.environment.set(\"fecha_reprog_ref\", \"2026-12-10\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Turno reprogramado vuelve directo a CONFIRMADO sin doble cobro\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.estado).to.eql(\"CONFIRMADO\");",
+                      "    pm.expect(jsonData.pagado).to.be.true;",
+                      "    pm.expect(jsonData.costoAcordado).to.eql(15000.0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nuevaFecha\": \"{{fecha_reprog_ref}}\",\n    \"nuevaHoraInicio\": \"10:00:00\"\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_ref_id}}/reprogramacion",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos",
+                    "{{turno_ref_id}}",
+                    "reprogramacion"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "07. PATCH /api/reservas/turnos/{id}/cierre-atencion — Registrar Cierre de Atención Médica (FUNC-12)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "if (!pm.environment.get(\"turno_ref_id\")) {",
+                      "    pm.environment.set(\"turno_ref_id\", \"2\");",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Turno pasa a estado ATENDIDO\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.estado).to.eql(\"ATENDIDO\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{profesional_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"resultado\": \"ATENDIDO\"\n}"
+                },
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_ref_id}}/cierre-atencion",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos",
+                    "{{turno_ref_id}}",
+                    "cierre-atencion"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "08. PATCH /api/reservas/turnos/{id}/cancelacion — Cancelar Turno por el Paciente (FUNC-09 / RN-05)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "var fechaCancel = pm.environment.get(\"fecha_reprog_ref\");",
+                      "if (!fechaCancel) {",
+                      "    var d = new Date();",
+                      "    d.setDate(d.getDate() + 180);",
+                      "    while (d.getDay() === 0 || d.getDay() === 6) {",
+                      "        d.setDate(d.getDate() + 1);",
+                      "    }",
+                      "    var yyyy = d.getFullYear();",
+                      "    var mm = String(d.getMonth() + 1).padStart(2, '0');",
+                      "    var dd = String(d.getDate()).padStart(2, '0');",
+                      "    fechaCancel = yyyy + '-' + mm + '-' + dd;",
+                      "}",
+                      "pm.sendRequest({",
+                      "    url: pm.environment.get(\"gateway_url\") + \"/api/reservas/turnos\",",
+                      "    method: \"POST\",",
+                      "    header: {",
+                      "        \"Authorization\": \"Bearer \" + pm.environment.get(\"paciente_perez_token\"),",
+                      "        \"Content-Type\": \"application/json\"",
+                      "    },",
+                      "    body: {",
+                      "        mode: \"raw\",",
+                      "        raw: JSON.stringify({",
+                      "            profesionalId: 1,",
+                      "            servicioId: 1,",
+                      "            fecha: fechaCancel,",
+                      "            horaInicio: \"11:00:00\"",
+                      "        })",
+                      "    }",
+                      "}, function (err, res) {",
+                      "    if (!err && res && res.code === 201) {",
+                      "        pm.environment.set(\"turno_cancel_ref_id\", res.json().id);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Turno cancelado anticipadamente sin penalidad\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.estado).to.eql(\"CANCELADO_PACIENTE\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{paciente_perez_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/turnos/{{turno_cancel_ref_id}}/cancelacion",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "turnos",
+                    "{{turno_cancel_ref_id}}",
+                    "cancelacion"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.3. Notificaciones (NotificacionController - RN-08 / INT-01)",
+          "item": [
+            {
+              "name": "01. GET /api/reservas/notificaciones — Auditar Historial de Notificaciones Externas por Estado y Paciente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code es 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Retorna notificaciones enviadas del paciente 1\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.least(1);",
+                      "    pm.expect(jsonData[0].estadoEnvio).to.eql(\"ENVIADO\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{gateway_url}}/api/reservas/notificaciones?estado=ENVIADO&pacienteId=1",
+                  "host": [
+                    "{{gateway_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservas",
+                    "notificaciones"
+                  ],
+                  "query": [
+                    {
+                      "key": "estado",
+                      "value": "ENVIADO"
+                    },
+                    {
+                      "key": "pacienteId",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
