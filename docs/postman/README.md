@@ -15,7 +15,12 @@ Esta carpeta contiene la **Suite de Pruebas de Integración y Casos de Verificac
    - Colección v2.1 de Postman con **37 peticiones** (5 tokens OIDC + Actuator Health del Gateway + los **31 endpoints REST completos**: 19 de `ms-catalogo-recursos` y 12 de `ms-reservas`) organizadas por microservicio y controlador.
    - Pensada tanto para demostrar cada endpoint individualmente frente al tribunal como para correrla completa en *Collection Runner* o Newman sin alterar los turnos semilla.
 
-3. **`MediTurnos_Local_Docker.postman_environment.json`** *(Entorno Compartido)*:
+3. **`MediTurnos_Google_Calendar.postman_collection.json`** *(Integración Google Calendar)*:
+   - Colección v2.1 de Postman con **13 peticiones en 6 carpetas**: recorre el ciclo de vida de un turno (reserva → pago → bloqueo médico → reprogramación → cancelación) y verifica en la auditoría de notificaciones la fila del canal `GOOGLE_CALENDAR` de cada paso, y que Telegram siga notificando en paralelo.
+   - Funciona en modo simulado (`GOOGLE_CALENDAR_ENABLED=false`, por defecto) y en modo real (el mail y el evento le llegan al paciente 1, `paciente.perez`). Ver [`docs/google-calendar.md`](../google-calendar.md).
+   - Usa fechas y franjas aleatorias, así que se puede correr varias veces seguidas.
+
+4. **`MediTurnos_Local_Docker.postman_environment.json`** *(Entorno Compartido)*:
    - Entorno con las variables base (`gateway_url: http://localhost:8080`, `keycloak_url: http://localhost:8083`, realm y client).
    - Variables dinámicas de sesión para almacenar tokens (`admin_token`, `profesional_token`, `dra_martinez_token`, `paciente_perez_token`, `paciente_gomez_token`) y correlaciones.
 
@@ -29,6 +34,7 @@ Esta carpeta contiene la **Suite de Pruebas de Integración y Casos de Verificac
 3. Arrastra o selecciona los archivos de `docs/postman/`:
    - `MediTurnos_API.postman_collection.json`
    - `MediTurnos_Endpoints_Referencia.postman_collection.json`
+   - `MediTurnos_Google_Calendar.postman_collection.json`
    - `MediTurnos_Local_Docker.postman_environment.json`
 
 ### Paso 2: Seleccionar el Entorno
@@ -55,6 +61,11 @@ npx newman run docs/postman/MediTurnos_API.postman_collection.json \
 
 # 2. Catálogo Completo de Referencia (31/31 Endpoints REST)
 npx newman run docs/postman/MediTurnos_Endpoints_Referencia.postman_collection.json \
+    -e docs/postman/MediTurnos_Local_Docker.postman_environment.json \
+    --color on
+
+# 3. Integración Google Calendar (evento + invitación por email)
+npx newman run docs/postman/MediTurnos_Google_Calendar.postman_collection.json \
     -e docs/postman/MediTurnos_Local_Docker.postman_environment.json \
     --color on
 ```

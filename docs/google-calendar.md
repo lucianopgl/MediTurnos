@@ -54,6 +54,19 @@ auditoría. Si el email del paciente contiene `error` o `fallo` se simula una ca
 6. `docker compose up -d --build ms-reservas` y reservar un turno con un paciente cuyo email sea real.
    Verificar en `GET /api/reservas/notificaciones` (rol admin) el registro `GOOGLE_CALENDAR` → `ENVIADO`.
 
+## Pruebas con Postman
+
+La colección [`docs/postman/MediTurnos_Google_Calendar.postman_collection.json`](postman/MediTurnos_Google_Calendar.postman_collection.json)
+(con el entorno `MediTurnos_Local_Docker`) recorre reserva → pago → bloqueo médico → reprogramación → cancelación
+con `paciente.perez` y verifica la auditoría `GOOGLE_CALENDAR` de cada paso, y que Telegram siga notificando.
+Sirve en modo simulado y en modo real; en modo real, al terminar, el paciente debería tener en su bandeja la
+invitación, la actualización por la reprogramación y el aviso de cancelación.
+
+```bash
+npx newman run docs/postman/MediTurnos_Google_Calendar.postman_collection.json \
+    -e docs/postman/MediTurnos_Local_Docker.postman_environment.json
+```
+
 > ⚠️ Mientras la app OAuth esté en estado *Testing*, Google invalida el refresh token a los **7 días**.
 > Para la demo alcanza con regenerarlo (paso 4); para uso continuo hay que publicar la app.
 

@@ -1,0 +1,839 @@
+{
+  "info": {
+    "name": "📅 MediTurnos API — Integración Google Calendar (RN-08)",
+    "description": "Recorre el ciclo de vida completo de un turno (reserva → pago → bloqueo médico → reprogramación → cancelación) y verifica en la auditoría (GET /api/reservas/notificaciones) la fila del canal GOOGLE_CALENDAR de cada paso, además de que Telegram siga notificando.\n\nFunciona en modo simulado (GOOGLE_CALENDAR_ENABLED=false, por defecto) y en modo real. En modo real, el mail y el evento le llegan al email del paciente 1 (paciente.perez). Ver docs/google-calendar.md.\n\nUsa el entorno 'MediTurnos — Local Docker Environment'. Las fechas son aleatorias, así que se puede correr varias veces.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00. Autenticación Keycloak",
+      "item": [
+        {
+          "name": "01. Token ROL_ADMIN (admin.mediturnos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de admin.mediturnos obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"admin_token\", jsonData.access_token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "admin.mediturnos",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "02. Token ROL_PROFESIONAL (dr.gonzalez)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de dr.gonzalez obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"profesional_token\", jsonData.access_token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "dr.gonzalez",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "03. Token ROL_PACIENTE (paciente.perez)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token JWT de paciente.perez obtenido\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set(\"paciente_perez_token\", jsonData.access_token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "paciente.perez",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "mediturnos2026",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak_url}}"
+              ],
+              "path": [
+                "realms",
+                "{{realm}}",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01. Reserva → crea evento e invitación por email",
+      "item": [
+        {
+          "name": "01. Reservar turno (FUNC-07)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Fecha y franja aleatorias (día hábil entre 30 y 300 días, 08:00-13:30) para que la colección",
+                  "// se pueda correr varias veces sin colisiones ni chocar con bloqueos de corridas anteriores.",
+                  "function diaHabil(offset) {",
+                  "    var d = new Date();",
+                  "    d.setDate(d.getDate() + offset);",
+                  "    while (d.getDay() === 0 || d.getDay() === 6) { d.setDate(d.getDate() + 1); }",
+                  "    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');",
+                  "}",
+                  "var offset = 30 + Math.floor(Math.random() * 270);",
+                  "var slot = Math.floor(Math.random() * 12); // 12 franjas de 30 min entre 08:00 y 14:00",
+                  "var h = 8 + Math.floor(slot / 2), m = (slot % 2) * 30;",
+                  "var hora = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';",
+                  "var fin = new Date(2000, 0, 1, h, m + 30);",
+                  "var horaFin = String(fin.getHours()).padStart(2, '0') + ':' + String(fin.getMinutes()).padStart(2, '0') + ':00';",
+                  "pm.collectionVariables.set(\"gc_fecha\", diaHabil(offset));",
+                  "pm.collectionVariables.set(\"gc_hora\", hora);",
+                  "pm.collectionVariables.set(\"gc_hora_fin\", horaFin);",
+                  "pm.collectionVariables.set(\"gc_fecha_reprog\", diaHabil(offset + 1));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Turno RESERVADO (la notificación nunca bloquea la reserva - RN-08)\", function () {",
+                  "    var t = pm.response.json();",
+                  "    pm.expect(t.estado).to.eql(\"RESERVADO\");",
+                  "    pm.collectionVariables.set(\"gc_turno_id\", t.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_perez_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/turnos",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "turnos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"profesionalId\": 1,\n    \"servicioId\": 1,\n    \"fecha\": \"{{gc_fecha}}\",\n    \"horaInicio\": \"{{gc_hora}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "02. Auditoría: GOOGLE_CALENDAR / RESERVA = ENVIADO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var turnoId = Number(pm.collectionVariables.get(\"gc_turno_id\"));",
+                  "var filas = pm.response.json().filter(function (n) { return n.turnoId === turnoId; });",
+                  "var gc = filas.filter(function (n) { return n.canal === \"GOOGLE_CALENDAR\" && n.tipoAlerta === \"RESERVA\"; });",
+                  "var tg = filas.filter(function (n) { return n.canal === \"TELEGRAM\" && n.tipoAlerta === \"RESERVA\"; });",
+                  "",
+                  "pm.test(\"Se registró 1 notificación GOOGLE_CALENDAR en estado ENVIADO\", function () {",
+                  "    pm.expect(gc.length, \"filas GOOGLE_CALENDAR\").to.eql(1);",
+                  "    pm.expect(gc[0].estadoEnvio).to.eql(\"ENVIADO\");",
+                  "});",
+                  "pm.test(\"El destinatario es el email del paciente y el detalle referencia el evento del turno\", function () {",
+                  "    pm.expect(gc[0].destinatario).to.include(\"@\");",
+                  "    pm.expect(gc[0].detalleMensaje).to.include(String(turnoId));",
+                  "});",
+                  "pm.test(\"Telegram sigue notificando en paralelo (sin regresión)\", function () {",
+                  "    pm.expect(tg.length, \"filas TELEGRAM\").to.eql(1);",
+                  "});",
+                  "if (gc.length && gc[0].detalleMensaje.indexOf(\"[SIMULADO]\") >= 0) {",
+                  "    console.log(\"Google Calendar en modo SIMULADO (GOOGLE_CALENDAR_ENABLED=false): no se envió el mail real.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/notificaciones?pacienteId=1",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "pacienteId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Audita las notificaciones del turno de la prueba luego de: la reserva."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Pago → actualiza el evento",
+      "item": [
+        {
+          "name": "01. Registrar pago y confirmar (FUNC-08)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"gc_ref_pago\", \"PAGO-GCAL-\" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK y turno CONFIRMADO\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().estadoTurnoActual).to.eql(\"CONFIRMADO\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_perez_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/turnos/{{gc_turno_id}}/pagos",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "turnos",
+                "{{gc_turno_id}}",
+                "pagos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"monto\": 15000.0,\n    \"medioPago\": \"TARJETA_DEBITO\",\n    \"comprobanteReferencia\": \"{{gc_ref_pago}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "02. Auditoría: GOOGLE_CALENDAR / CONFIRMACION = ENVIADO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var turnoId = Number(pm.collectionVariables.get(\"gc_turno_id\"));",
+                  "var filas = pm.response.json().filter(function (n) { return n.turnoId === turnoId; });",
+                  "var gc = filas.filter(function (n) { return n.canal === \"GOOGLE_CALENDAR\" && n.tipoAlerta === \"CONFIRMACION\"; });",
+                  "var tg = filas.filter(function (n) { return n.canal === \"TELEGRAM\" && n.tipoAlerta === \"CONFIRMACION\"; });",
+                  "",
+                  "pm.test(\"Se registró 1 notificación GOOGLE_CALENDAR en estado ENVIADO\", function () {",
+                  "    pm.expect(gc.length, \"filas GOOGLE_CALENDAR\").to.eql(1);",
+                  "    pm.expect(gc[0].estadoEnvio).to.eql(\"ENVIADO\");",
+                  "});",
+                  "pm.test(\"El destinatario es el email del paciente y el detalle referencia el evento del turno\", function () {",
+                  "    pm.expect(gc[0].destinatario).to.include(\"@\");",
+                  "    pm.expect(gc[0].detalleMensaje).to.include(String(turnoId));",
+                  "});",
+                  "pm.test(\"Telegram sigue notificando en paralelo (sin regresión)\", function () {",
+                  "    pm.expect(tg.length, \"filas TELEGRAM\").to.eql(1);",
+                  "});",
+                  "if (gc.length && gc[0].detalleMensaje.indexOf(\"[SIMULADO]\") >= 0) {",
+                  "    console.log(\"Google Calendar en modo SIMULADO (GOOGLE_CALENDAR_ENABLED=false): no se envió el mail real.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/notificaciones?pacienteId=1",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "pacienteId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Audita las notificaciones del turno de la prueba luego de: el pago."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Bloqueo médico → NO toca el calendario",
+      "item": [
+        {
+          "name": "01. Bloquear la franja del turno (FUNC-10)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK y el turno de la prueba quedó afectado\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var ids = pm.response.json().turnosAfectadosIds.map(Number);",
+                  "    pm.expect(ids).to.include(Number(pm.collectionVariables.get(\"gc_turno_id\")));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{profesional_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/turnos/cancelacion-bloque-profesional",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "turnos",
+                "cancelacion-bloque-profesional"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"profesionalId\": 1,\n    \"fecha\": \"{{gc_fecha}}\",\n    \"horaInicio\": \"{{gc_hora}}\",\n    \"horaFin\": \"{{gc_hora_fin}}\",\n    \"motivo\": \"Prueba Google Calendar Postman\"\n}"
+            }
+          }
+        },
+        {
+          "name": "02. Auditoría: sin GOOGLE_CALENDAR para PENDIENTE_REPROGRAMACION",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var turnoId = Number(pm.collectionVariables.get(\"gc_turno_id\"));",
+                  "var filas = pm.response.json().filter(function (n) { return n.turnoId === turnoId; });",
+                  "var gc = filas.filter(function (n) { return n.canal === \"GOOGLE_CALENDAR\" && n.tipoAlerta === \"REPROGRAMACION\"; });",
+                  "var tg = filas.filter(function (n) { return n.canal === \"TELEGRAM\" && n.tipoAlerta === \"REPROGRAMACION\"; });",
+                  "",
+                  "pm.test(\"Telegram avisa la reprogramación pendiente\", function () {",
+                  "    pm.expect(tg.length).to.eql(1);",
+                  "});",
+                  "pm.test(\"Google Calendar no se modifica todavía (no hay nuevo horario)\", function () {",
+                  "    pm.expect(gc.length).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/notificaciones?pacienteId=1",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "pacienteId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Audita las notificaciones del turno de la prueba luego de: el bloqueo médico."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Reprogramación → mueve el evento",
+      "item": [
+        {
+          "name": "01. Reprogramar al día hábil siguiente (FUNC-11)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK y vuelve a CONFIRMADO sin doble cobro\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var t = pm.response.json();",
+                  "    pm.expect(t.estado).to.eql(\"CONFIRMADO\");",
+                  "    pm.expect(t.fecha).to.eql(pm.collectionVariables.get(\"gc_fecha_reprog\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_perez_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/turnos/{{gc_turno_id}}/reprogramacion",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "turnos",
+                "{{gc_turno_id}}",
+                "reprogramacion"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nuevaFecha\": \"{{gc_fecha_reprog}}\",\n    \"nuevaHoraInicio\": \"{{gc_hora}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "02. Auditoría: GOOGLE_CALENDAR / REPROGRAMACION = ENVIADO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var turnoId = Number(pm.collectionVariables.get(\"gc_turno_id\"));",
+                  "var filas = pm.response.json().filter(function (n) { return n.turnoId === turnoId; });",
+                  "var gc = filas.filter(function (n) { return n.canal === \"GOOGLE_CALENDAR\" && n.tipoAlerta === \"REPROGRAMACION\"; });",
+                  "var tg = filas.filter(function (n) { return n.canal === \"TELEGRAM\" && n.tipoAlerta === \"REPROGRAMACION\"; });",
+                  "",
+                  "pm.test(\"Telegram: aviso de bloqueo + aviso de reprogramación\", function () {",
+                  "    pm.expect(tg.length).to.eql(2);",
+                  "});",
+                  "pm.test(\"Google Calendar: 1 actualización del evento (solo la reprogramación efectiva)\", function () {",
+                  "    pm.expect(gc.length).to.eql(1);",
+                  "    pm.expect(gc[0].estadoEnvio).to.eql(\"ENVIADO\");",
+                  "    pm.expect(gc[0].detalleMensaje).to.include(String(turnoId));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/notificaciones?pacienteId=1",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "pacienteId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Audita las notificaciones del turno de la prueba luego de: la reprogramación."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Cancelación → cancela el evento",
+      "item": [
+        {
+          "name": "01. Cancelar turno por el paciente (FUNC-09)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK y turno cancelado\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().estado).to.include(\"CANCELADO\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_perez_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/turnos/{{gc_turno_id}}/cancelacion",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "turnos",
+                "{{gc_turno_id}}",
+                "cancelacion"
+              ]
+            }
+          }
+        },
+        {
+          "name": "02. Auditoría: GOOGLE_CALENDAR / CANCELACION = ENVIADO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var turnoId = Number(pm.collectionVariables.get(\"gc_turno_id\"));",
+                  "var filas = pm.response.json().filter(function (n) { return n.turnoId === turnoId; });",
+                  "var gc = filas.filter(function (n) { return n.canal === \"GOOGLE_CALENDAR\" && n.tipoAlerta === \"CANCELACION\"; });",
+                  "var tg = filas.filter(function (n) { return n.canal === \"TELEGRAM\" && n.tipoAlerta === \"CANCELACION\"; });",
+                  "",
+                  "pm.test(\"Se registró 1 notificación GOOGLE_CALENDAR en estado ENVIADO\", function () {",
+                  "    pm.expect(gc.length, \"filas GOOGLE_CALENDAR\").to.eql(1);",
+                  "    pm.expect(gc[0].estadoEnvio).to.eql(\"ENVIADO\");",
+                  "});",
+                  "pm.test(\"El destinatario es el email del paciente y el detalle referencia el evento del turno\", function () {",
+                  "    pm.expect(gc[0].destinatario).to.include(\"@\");",
+                  "    pm.expect(gc[0].detalleMensaje).to.include(String(turnoId));",
+                  "});",
+                  "pm.test(\"Telegram sigue notificando en paralelo (sin regresión)\", function () {",
+                  "    pm.expect(tg.length, \"filas TELEGRAM\").to.eql(1);",
+                  "});",
+                  "if (gc.length && gc[0].detalleMensaje.indexOf(\"[SIMULADO]\") >= 0) {",
+                  "    console.log(\"Google Calendar en modo SIMULADO (GOOGLE_CALENDAR_ENABLED=false): no se envió el mail real.\");",
+                  "}",
+                  "pm.test(\"El detalle indica que el evento fue cancelado\", function () {",
+                  "    pm.expect(gc[0].detalleMensaje).to.include(\"Evento cancelado\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/reservas/notificaciones?pacienteId=1",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "pacienteId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Audita las notificaciones del turno de la prueba luego de: la cancelación."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gc_turno_id",
+      "value": ""
+    },
+    {
+      "key": "gc_fecha",
+      "value": ""
+    },
+    {
+      "key": "gc_hora",
+      "value": ""
+    },
+    {
+      "key": "gc_hora_fin",
+      "value": ""
+    },
+    {
+      "key": "gc_fecha_reprog",
+      "value": ""
+    },
+    {
+      "key": "gc_ref_pago",
+      "value": ""
+    }
+  ]
+}
