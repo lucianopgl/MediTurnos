@@ -75,4 +75,19 @@ public class RestClientConfig {
                 })
                 .build();
     }
+
+    /**
+     * Cliente hacia las APIs públicas de Google (OAuth token + Calendar v3).
+     * Sin baseUrl porque usa dos hosts distintos; reutiliza los timeouts de notificaciones (RN-08).
+     */
+    @Bean
+    public RestClient googleCalendarRestClient(RestClient.Builder builder) {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofMillis(notificacionesConnectTimeoutMs));
+        requestFactory.setReadTimeout(Duration.ofMillis(notificacionesReadTimeoutMs));
+
+        return builder
+                .requestFactory(requestFactory)
+                .build();
+    }
 }

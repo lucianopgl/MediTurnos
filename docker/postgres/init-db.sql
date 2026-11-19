@@ -286,7 +286,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 1. Pacientes (Sincronizados con UUIDs de Keycloak en realm-export.json)
 INSERT INTO schema_reservas.pacientes (id, keycloak_sub, dni, nombre, apellido, email, telefono_whatsapp, cantidad_penalizaciones, activo) VALUES
-    (1, '00000000-0000-0000-0000-000000000004', '40111222', 'Juan', 'Pérez', 'paciente.perez@mediturnos.com.ar', '+5493515550101', 0, TRUE),
+    (1, '00000000-0000-0000-0000-000000000004', '40111222', 'Juan', 'Pérez', 'augusto.data19@gmail.com', '+5493515550101', 0, TRUE),
     (2, '00000000-0000-0000-0000-000000000005', '42333444', 'María', 'Gómez', 'paciente.gomez@mediturnos.com.ar', '+5493515550202', 0, TRUE)
 ON CONFLICT (id) DO NOTHING;
 

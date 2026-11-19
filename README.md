@@ -195,7 +195,7 @@ sequenceDiagram
 | **División de Microservicios** | Se implementan **dos (2) microservicios funcionales (Spring Boot)** con límites de dominio claros:<br>1. **`ms-catalogo-recursos`**: Responsable del ABM y validación de reglas estáticas/parametrizadas del catálogo: sedes físicas, consultorios fijos (`N:1`), médicos (plantillas horarias semanales, bloqueos por fecha y servicios habilitados), especialidades, servicios (duraciones y costos) y equipamientos de diagnóstico (`N:N` y estado operativo).<br>2. **`ms-reservas`**: Responsable del registro de pacientes (vinculados al `sub` de Keycloak), orquestación del ciclo de vida transaccional directo del turno, **validación transaccional de no colisión horaria** en `schema_reservas`, registración de pagos y despacho de notificaciones externas. |
 | **Diseño Interno de Capas** | Patrón estricto de capas (**`Controller -> Service -> Repository`**). Los controladores mapean DTOs y gestionan HTTP (`@Valid`), delegando toda la lógica de negocio a la capa `@Service`, que interactúa con la base de datos mediante Spring Data JPA (`JpaRepository`). |
 | **Colaboración entre Microservicios** | **Interacción Síncrona (`RestClient`) sin Acoplamiento Circular:**<br>1. `ms-reservas` consulta vía `RestClient` a `ms-catalogo-recursos` enviando `(profesionalId, servicioId, fecha, horaInicio)`.<br>2. `ms-catalogo-recursos` valida las reglas estáticas y parametrizadas del catálogo (**RN-01** y **RN-02**) y retorna (`200 OK`) un DTO con: `duracionMinutos`, `costo`, `sedeId`, `consultorioFijoId` y `List<equipamientoId>`.<br>3. Con esos IDs, `ms-reservas` ejecuta la validación transaccional de no colisión (**RN-03**) en su propio `schema_reservas` para esa fecha y rango `[horaInicio, horaFin)`, persistiendo el turno directamente. |
-| **API Pública Externa** | **API Pública Externa de Mensajería/Notificaciones (Telegram Bot API / Email REST API):** Consumida vía `RestClient` desde `ms-reservas` para enviar notificaciones transaccionales en tiempo real al paciente (confirmación de reserva, cancelación y alerta de reprogramación prioritaria ante bloqueo médico), con degradación controlada (**RN-08**). |
+| **API Pública Externa** | **API Pública Externa de Mensajería/Notificaciones (Telegram Bot API / Email REST API):** Consumida vía `RestClient` desde `ms-reservas` para enviar notificaciones transaccionales en tiempo real al paciente (confirmación de reserva, cancelación y alerta de reprogramación prioritaria ante bloqueo médico), con degradación controlada (**RN-08**). Además, **Google Calendar API** crea/actualiza/cancela el evento del turno invitando al paciente por email (ver [`docs/google-calendar.md`](docs/google-calendar.md)). |
 | **Seguridad y Enrutamiento** | **Spring Cloud Gateway** como punto único de entrada a la *Trusted Zone*, implementando un **Security Filter (`OAuth2 Resource Server`)** que valida los tokens JWT contra **Keycloak** antes de enrutar las peticiones hacia los microservicios. |
 | **Componente Común (JAR Reutilizable)** | Artefacto Maven independiente (**`mediturnos-common-lib.jar`**) que centraliza los **DTOs compartidos de contrato inter-servicio**, las **Excepciones Personalizadas de Negocio** (`ReglaNegocioException`, `RecursoNoDisponibleException`, `ColisionHorariaException`), el **`GlobalExceptionHandler`** y el filtro de propagación de **`Correlation-ID`**. Instalado en `.m2` e inyectado como `<dependency>` en ambos microservicios. |
 | **Persistencia de Datos (Base de Datos)** | Instancia única de **PostgreSQL 16** (y H2 para tests locales) con división lógica estricta mediante esquemas independientes (**`schema_catalogo`** y **`schema_reservas`**), sin claves foráneas ni consultas cruzadas entre esquemas. |
@@ -501,7 +501,7 @@ erDiagram
         bigint id PK
         bigint turno_id FK "NULLABLE"
         bigint paciente_id FK "NOT NULL"
-        varchar canal "NOT NULL (TELEGRAM, EMAIL)"
+        varchar canal "NOT NULL (TELEGRAM, EMAIL, GOOGLE_CALENDAR)"
         varchar destinatario "NOT NULL (Snapshot destino)"
         varchar tipo_alerta "NOT NULL (RESERVA, CONFIRMACION, REPROGRAMACION)"
         varchar estado_envio "NOT NULL (ENVIADO, ERROR)"
@@ -539,7 +539,7 @@ erDiagram
 - **Identidad y Autorización:** Keycloak 24 (OIDC · JWT · Roles: `ROL_ADMIN`, `ROL_PROFESIONAL`, `ROL_PACIENTE`)
 - **Persistencia:** Spring Data JPA (Hibernate) + PostgreSQL 16 (Docker) / H2 (Testing)
 - **Comunicación Inter-Servicio y Externa:** Spring `RestClient`
-- **API Pública Externa:** API REST de Mensajería/Notificaciones (Telegram Bot API / Email REST API)
+- **API Pública Externa:** API REST de Mensajería/Notificaciones (Telegram Bot API / Email REST API) y Google Calendar API v3 (evento + invitación por email — [`docs/google-calendar.md`](docs/google-calendar.md))
 - **Documentación y Pruebas Reproducibles:** Springdoc OpenAPI 3 (Swagger UI) + Colección Postman / Bruno
 - **Componente Común:** Apache Maven (`mediturnos-common-lib.jar` en `.m2`)
 - **Contenerización:** Docker & Docker Compose

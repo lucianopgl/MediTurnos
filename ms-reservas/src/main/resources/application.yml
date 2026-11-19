@@ -34,6 +34,18 @@ notificaciones:
     connect-timeout-ms: 3000
     read-timeout-ms: 4000
 
+google:
+  calendar:
+    # false = modo simulado (no llama a Google). true = integración real vía OAuth refresh token.
+    enabled: ${GOOGLE_CALENDAR_ENABLED:false}
+    client-id: ${GOOGLE_CALENDAR_CLIENT_ID:}
+    client-secret: ${GOOGLE_CALENDAR_CLIENT_SECRET:}
+    refresh-token: ${GOOGLE_CALENDAR_REFRESH_TOKEN:}
+    calendar-id: ${GOOGLE_CALENDAR_ID:primary}
+    time-zone: ${GOOGLE_CALENDAR_TIME_ZONE:America/Argentina/Cordoba}
+    # Solo caracteres a-v y 0-9 (base32hex, requisito de Google para IDs de evento)
+    event-id-prefix: ${GOOGLE_CALENDAR_EVENT_ID_PREFIX:mediturnos}
+
 management:
   endpoints:
     web:

@@ -29,3 +29,7 @@ notificaciones:
   api:
     url: https://api.telegram.org
     bot-token: dummy_token_desarrollo
+
+google:
+  calendar:
+    enabled: false
