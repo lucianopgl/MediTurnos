@@ -74,8 +74,8 @@ class GoogleCalendarClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Authorization", "Bearer ya29.test"))
                 .andExpect(jsonPath("$.id").value("mediturnos42"))
-                .andExpect(jsonPath("$.start.dateTime").value("2026-11-20T10:00"))
-                .andExpect(jsonPath("$.end.dateTime").value("2026-11-20T10:30"))
+                .andExpect(jsonPath("$.start.dateTime").value("2026-11-20T10:00:00-03:00"))
+                .andExpect(jsonPath("$.end.dateTime").value("2026-11-20T10:30:00-03:00"))
                 .andExpect(jsonPath("$.start.timeZone").value("America/Argentina/Cordoba"))
                 .andExpect(jsonPath("$.attendees[0].email").value("ana@example.com"))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));

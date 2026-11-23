@@ -17,6 +17,9 @@ import utn.frc.backend.mediturnos.reservas.entity.Turno;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,16 +146,17 @@ public class GoogleCalendarClient {
     }
 
     private Map<String, Object> construirEvento(String eventId, Turno turno, Paciente paciente, String descripcion) {
-        LocalDateTime inicio = LocalDateTime.of(turno.getFecha(), turno.getHoraInicio());
-        LocalDateTime fin = LocalDateTime.of(turno.getFecha(), turno.getHoraFin());
+        ZoneId zone = ZoneId.of(timeZone);
+        ZonedDateTime inicio = LocalDateTime.of(turno.getFecha(), turno.getHoraInicio()).atZone(zone);
+        ZonedDateTime fin = LocalDateTime.of(turno.getFecha(), turno.getHoraFin()).atZone(zone);
 
         Map<String, Object> evento = new LinkedHashMap<>();
         evento.put("id", eventId);
         evento.put("status", "confirmed");
         evento.put("summary", "Turno médico #" + turno.getId() + " — MediTurnos");
         evento.put("description", descripcion);
-        evento.put("start", Map.of("dateTime", inicio.toString(), "timeZone", timeZone));
-        evento.put("end", Map.of("dateTime", fin.toString(), "timeZone", timeZone));
+        evento.put("start", Map.of("dateTime", inicio.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), "timeZone", timeZone));
+        evento.put("end", Map.of("dateTime", fin.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), "timeZone", timeZone));
         evento.put("attendees", List.of(Map.of(
                 "email", paciente.getEmail(),
                 "displayName", paciente.getNombre() + " " + paciente.getApellido()
