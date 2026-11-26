@@ -23,7 +23,7 @@ Si el destinatario (`telefono_whatsapp` o `email`) contiene `error` o `fallo`, s
 1. **Crear el bot en Telegram (`@BotFather`):**
    - Abrí Telegram, buscá el chat oficial **`@BotFather`** y enviá `/newbot`.
    - Ingresá un nombre visible (ej. `MediTurnos Notificaciones`) y un username terminado en `bot` (ej. `mediturnos_g06_bot`).
-   - Copiá el **HTTP API Token** devuelto (formato `1234567890:AAHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`).
+   - Copiá el **HTTP API Token** devuelto (formato `<BOT_ID>:<CLAVE_BOTFATHER>`).
 2. **Iniciar el chat con tu bot y obtener tu `chat_id`:**
    - Abrí el enlace `t.me/<tu_bot>` y presioná **Iniciar** (`/start`) o enviá un mensaje (`hola`). *(Telegram exige que el usuario inicie el chat antes de que el bot pueda escribirle).*
    - Consultá `https://api.telegram.org/bot<TU_TOKEN>/getUpdates` en el navegador y copiá el número entero dentro de `"chat": { "id": ... }` (también podés consultarlo con `@userinfobot`, recordando haber iniciado previamente el chat con tu bot).
@@ -31,7 +31,7 @@ Si el destinatario (`telefono_whatsapp` o `email`) contiene `error` o `fallo`, s
 
    ```dotenv
    NOTIFICACIONES_API_URL=https://api.telegram.org
-   NOTIFICACIONES_BOT_TOKEN=1234567890:AAHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   NOTIFICACIONES_BOT_TOKEN=<TU_BOT_TOKEN>
    ```
 
 4. **Asociar el `chat_id` al paciente semilla en PostgreSQL** (sin modificar `docker/postgres/init-db.sql`):
